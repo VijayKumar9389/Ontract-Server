@@ -4,6 +4,7 @@ node_modules/
 # Ignore build output
 dist/
 build/
+uploads/
 
 # Ignore generated Prisma files
 /prisma/

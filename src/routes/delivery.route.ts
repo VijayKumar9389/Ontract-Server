@@ -14,9 +14,21 @@ router.get('/getbyproject/:projectId', (req: Request, res: Response) =>
     deliveryController.getDeliveriesByProjectId(req, res)
 );
 
+router.get('/getbyid/:deliveryId', (req: Request, res: Response) =>
+    deliveryController.getDeliveryById(req, res)
+);
+
 // Get deliveries by stakeholderId
-router.get('/deliveries/package/:packageId', (req: Request, res: Response) =>
+router.get('/getbypackage/:packageId', (req: Request, res: Response) =>
     deliveryController.getDeliveriesByPackageId(req, res)
+);
+
+router.get('/report/:projectId', (req: Request, res: Response) =>
+    deliveryController.getDeliveriesReport(req, res)
+);
+
+router.delete('/cancel/:deliveryId', (req: Request, res: Response) =>
+    deliveryController.cancelDelivery(req, res)
 );
 
 export default router;

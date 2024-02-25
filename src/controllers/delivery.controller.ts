@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import { DeliveryDTO } from '../dtos/delivery.dto';
+import {Request, Response} from 'express';
+import {DeliveryDTO, DeliveryWithNestedObjects} from '../dtos/delivery.dto';
 import DeliveryService from "../services/delivery.service";
 import {Delivery} from "@prisma/client";
 
@@ -10,30 +10,116 @@ export class DeliveryController {
         this.deliveryService = new DeliveryService();
     }
 
+    // Create a new delivery
     async createDelivery(req: Request, res: Response): Promise<void> {
         try {
+            // Input validation - Ensure that the request body contains necessary data.
             const deliveryData: DeliveryDTO = req.body;
             const newDelivery = await this.deliveryService.createDelivery(deliveryData);
 
+            //const newDelivery: Delivery | null = await this.deliveryService.createDelivery(deliveryData);
             if (newDelivery) {
                 res.status(201).json(newDelivery);
             } else {
-                res.status(500).json({ error: 'Error creating delivery' });
+                res.status(500).json({error: 'Error creating delivery'});
             }
         } catch (error: any) {
             console.error('Error creating delivery:', error);
+            res.status(500).json({error: 'Internal Server Error'});
+        }
+    }
+
+    async getDeliveryById(req: Request, res: Response): Promise<void> {
+        try {
+            const deliveryId: number = parseInt(req.params.deliveryId, 10);
+            const delivery: Delivery | null = await this.deliveryService.getDeliveryById(deliveryId);
+            if (delivery) {
+                res.status(200).json(delivery);
+            } else {
+                res.status(404).json({error: 'Delivery not found'});
+            }
+        } catch (error) {
+            console.error('Error in getDeliveryById:', error);
+            res.status(500).json({error: 'Internal Server Error'});
+        }
+    }
+
+    async cancelDelivery(req: Request, res: Response): Promise<void> {
+        try {
+            const deliveryId: number = parseInt(req.params.deliveryId, 10);
+            await this.deliveryService.cancelDelivery(deliveryId);
+            res.status(204).json();
+        } catch (error) {
+            console.error('Error in cancelDelivery:', error);
+            res.status(500).json({error: 'Internal Server Error'});
+        }
+    }
+
+    // Get deliveries report
+    async getDeliveriesReport(req: Request, res: Response): Promise<void> {
+        try {
+            // Get all deliveries for a project
+            const deliveriesReport: DeliveryWithNestedObjects[] = await this.deliveryService.getDeliveriesByProjectId(1);
+
+            // Count of deliveries in report
+            const count: number = deliveriesReport.length;
+
+            // Count of stakeholders
+            const stakeholderCount = deliveriesReport.reduce((acc, delivery) => {
+                return acc + (delivery.packages ? delivery.packages.length : 0);
+            }, 0);
+
+            // Count of each package type
+            const packageTypeCountMap: Record<string, number> = {};
+
+            // Loop through each delivery and count the package types
+            deliveriesReport.forEach((delivery) => {
+                if (delivery.packages) {
+                    delivery.packages.forEach((packageInfo) => {
+                        if (packageInfo?.packageType && packageInfo.packageType.name) {
+                            packageTypeCountMap[packageInfo.packageType.name] = (packageTypeCountMap[packageInfo.packageType.name] || 0) + 1;
+                        }
+                    });
+                }
+            });
+
+            // Count of each delivery route
+            const deliveryRouteCountMap: Record<string, number> = {};
+
+            // Loop through each delivery and count the routes
+            deliveriesReport.forEach((delivery) => {
+                const route = delivery.route;
+                deliveryRouteCountMap[route] = (deliveryRouteCountMap[route] || 0) + 1;
+            });
+
+            // Count of deliveries with status "pending" or "completed"
+            const pendingDeliveryCount = deliveriesReport.filter((delivery) => delivery.status === "pending").length;
+            const completedDeliveryCount = deliveriesReport.filter((delivery) => delivery.status === "completed").length;
+
+            res.status(200).json({
+                count,
+                stakeholderCount,
+                packageTypeCountMap,
+                deliveryRouteCountMap,
+                pendingDeliveryCount,
+                completedDeliveryCount,
+            });
+        } catch (error) {
+            console.error('Error in getDeliveriesReport:', error);
             res.status(500).json({ error: 'Internal Server Error' });
         }
     }
 
+
+
     async getDeliveriesByProjectId(req: Request, res: Response): Promise<void> {
         try {
             const projectId: number = parseInt(req.params.projectId, 10);
-            const deliveries : Delivery[] = await this.deliveryService.getDeliveriesByProjectId(projectId);
+            const deliveries: Delivery[] = await this.deliveryService.getDeliveriesByProjectId(projectId);
             res.status(200).json(deliveries);
         } catch (error) {
             console.error('Error in getDeliveriesByProjectId:', error);
-            res.status(500).json({ error: 'Internal Server Error' });
+            res.status(500).json({error: 'Internal Server Error'});
         }
     }
 
@@ -42,15 +128,22 @@ export class DeliveryController {
             const packageId: number = parseInt(req.params.packageId, 10);
 
             if (isNaN(packageId)) {
-                res.status(400).json({ error: 'Invalid packageId' });
+                res.status(400).json({error: 'Invalid packageId'});
                 return;
             }
 
-            const deliveriesByPackage: Delivery[] = await this.deliveryService.getDeliveriesByPackageId(packageId);
+            const deliveriesByPackage: DeliveryWithNestedObjects | null = await this.deliveryService.getDeliveryByPackageId(packageId);
+
+            if (deliveriesByPackage === null) {
+                res.status(404).json({error: 'Delivery not found'});
+                return;
+            }
+
             res.status(200).json(deliveriesByPackage);
         } catch (error) {
             console.error(error);
-            res.status(500).json({ error: 'Internal Server Error' });
+            res.status(500).json({error: 'Internal Server Error'});
         }
     }
+
 }

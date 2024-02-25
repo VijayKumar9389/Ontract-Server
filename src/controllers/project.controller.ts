@@ -9,6 +9,7 @@ class ProjectController {
         this.projectService = new ProjectService();
     }
 
+    // Create a new project
     createProject = async (req: Request, res: Response): Promise<void> => {
         try {
             // Input validation - Ensure that the request body contains necessary data.
@@ -52,6 +53,17 @@ class ProjectController {
             res.status(500).json({ error: 'Internal Server Error' });
         }
     };
+
+    getAllProjects = async (_req: Request, res: Response): Promise<void> => {
+        try {
+            // Your existing logic for fetching all projects
+            const projects = await this.projectService.getAllProjects();
+            res.json(projects);
+        } catch (error) {
+            console.error('Error fetching all projects:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
 }
 
 export default ProjectController;

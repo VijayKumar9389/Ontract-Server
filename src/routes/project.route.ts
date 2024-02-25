@@ -7,5 +7,6 @@ const projectController: ProjectController = new ProjectController();
 // Define routes
 router.post('/create', projectController.createProject);
 router.get('/get/:projectId', projectController.getProject);
+router.get('/getall', projectController.getAllProjects);
 
 export default router;

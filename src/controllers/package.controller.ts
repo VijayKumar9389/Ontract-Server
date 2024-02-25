@@ -2,6 +2,8 @@
 import { Request, Response } from 'express';
 import PackageService from "../services/package.service"; // Adjust the path based on your actual structure
 import { PackageTypeDTO } from '../dtos/delivery.dto';
+import { PackageAddDTO } from '../dtos/package.dto';
+import {PackageType} from "@prisma/client";
 
 export class PackageController {
     private packageService: PackageService;
@@ -12,19 +14,114 @@ export class PackageController {
 
     async createPackageType(req: Request, res: Response): Promise<void> {
         try {
+            // Extract projectId from request parameters
+            const { projectId } = req.params;
             const packageTypeDTO: PackageTypeDTO = req.body;
-            const createdPackageType = await this.packageService.createPackageType(packageTypeDTO);
+
+            // Assuming your packageService.createPackageType function now requires projectId
+            const createdPackageType: PackageType = await this.packageService.createPackageType(projectId, packageTypeDTO);
+
+            // Respond with the created package type
             res.status(201).json(createdPackageType);
+        } catch (error) {
+            console.error(error);
+            // Handle errors and respond with an appropriate error message
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+
+    async changePackagePackageType(req: Request, res: Response): Promise<void> {
+        try {
+            const { packageId, packageTypeId } = req.params;
+            await this.packageService.changePackagePackageType(parseInt(packageId, 10), parseInt(packageTypeId, 10));
+            res.status(204).send();
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Internal Server Error' });
         }
     }
 
-    async getAllPackageTypes(_req: Request, res: Response): Promise<void> {
+    async cancelPackage(req: Request, res: Response): Promise<void> {
         try {
-            const packageTypes = await this.packageService.getAllPackageTypes();
+            const { packageId, stakeholderId } = req.params;
+            await this.packageService.cancelPackage(parseInt(packageId, 10), parseInt(stakeholderId, 10));
+            res.status(204).send();
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+
+    async createPackageForExistingDelivery(req: Request, res: Response): Promise<void> {
+        try {
+            // Extract data from the request body using the PackageAddDTO
+            const { selectedPackageTypeId, selectedDeliveryId, stakeholderId }: PackageAddDTO = req.body;
+
+            // Call the service method to create a new package for an existing delivery
+            const newPackage = await this.packageService.createPackageForExistingDelivery(
+                parseInt(stakeholderId),  // Assuming stakeholderId is a number
+                parseInt(selectedPackageTypeId),
+                parseInt(selectedDeliveryId)
+            );
+
+            // Respond with the created package
+            res.status(201).json(newPackage);
+        } catch (error) {
+            console.error(error);
+            // Handle errors and respond with an appropriate error message
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+
+    async getPackageTypeById(req: Request, res: Response): Promise<void> {
+        try {
+            const { packageTypeId } = req.params;
+            const packageType: PackageType | null = await this.packageService.getPackageTypeById(parseInt(packageTypeId, 10));
+            if (packageType) {
+                res.status(200).json(packageType);
+            } else {
+                res.status(404).json({ error: 'Package type not found' });
+            }
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+
+    async getAllPackageTypes(req: Request, res: Response): Promise<void> {
+        try {
+            // Extract projectId from request parameters
+            const { projectId } = req.params;
+
+            // Assuming your packageService.getAllPackageTypes function now requires projectId
+            const packageTypes: PackageType[] = await this.packageService.getAllPackageTypes(projectId);
+
+            // Respond with the retrieved package types
             res.status(200).json(packageTypes);
+        } catch (error) {
+            console.error(error);
+            // Handle errors and respond with an appropriate error message
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+
+    async getPackageByPackageTypeId(req: Request, res: Response): Promise<void> {
+        try {
+            const { packageTypeId } = req.params;
+            const packages = await this.packageService.getPackageByPackageTypeId(parseInt(packageTypeId, 10));
+            res.status(200).json(packages);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+
+    async getPackageByPackageItemId(req: Request, res: Response): Promise<void> {
+        console.log('Received package item ID:', req.params.packageItemId);
+        try {
+            const { packageItemId } = req.params;
+            const packages = await this.packageService.getPackageByPackageItemId(parseInt(packageItemId, 10));
+            res.status(200).json(packages);
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Internal Server Error' });
@@ -33,12 +130,15 @@ export class PackageController {
 
     async deletePackageType(req: Request, res: Response): Promise<void> {
         try {
-            const { id } = req.params;
-            await this.packageService.deletePackageType(parseInt(id, 10));
+            const id: number = parseInt(req.params.packageTypeId, 10);
+            console.log('Received package type ID:', id);
+
+            await this.packageService.deletePackageType(id);
             res.status(204).send();
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Internal Server Error' });
         }
     }
+
 }

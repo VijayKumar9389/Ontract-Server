@@ -58,6 +58,7 @@ export interface StakeholderInputDTO {
 
 export interface ProjectInputDTO {
     name: string;
+    year: number;
     notes: string;
     surveyLink: string;
     projectRecords: ProjectRecordInputDTO[];

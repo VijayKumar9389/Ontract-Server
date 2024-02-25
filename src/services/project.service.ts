@@ -34,8 +34,38 @@ class ProjectService {
         }
     }
 
+    async getAllProjects(): Promise<Project[]> {
+        try {
+            return await this.prisma.project.findMany();
+        } catch (error) {
+            console.error('Error fetching all projects:', error);
+            throw new Error('Internal Server Error');
+        }
+    }
+
+
+
     // Get all projects
     async getProjectWithDetails(projectId: number): Promise<Project | null> {
+        try {
+            // Fetch project with details
+            return await this.prisma.project.findUnique({
+                where: { id: projectId },
+                include: {
+                    stakeholders: {
+                        include: {
+                            tractRecords: true,
+                        },
+                    },
+                },
+            });
+        } catch (error) {
+            console.error('Error fetching project with details:', error);
+            throw new Error('Internal Server Error');
+        }
+    }
+
+    async getProjectWithDeliveryDetails(projectId: number): Promise<Project | null> {
         try {
             // Fetch project with details
             return await this.prisma.project.findUnique({
@@ -61,6 +91,7 @@ class ProjectService {
             return await this.prisma.project.create({
                 data: {
                     name: project.name,
+                    year: project.year,
                     notes: project.notes,
                     surveyLink: project.surveyLink,
                 },

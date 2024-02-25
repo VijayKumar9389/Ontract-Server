@@ -1,7 +1,7 @@
-import { PrismaClient, User } from '@prisma/client';
+import {PrismaClient, User} from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { CreateUserDTO } from '../dtos/user.dto';
+import {CreateUserDTO, UserOutputDTO} from '../dtos/user.dto';
 
 interface TokenResponse {
     auth: boolean;
@@ -34,7 +34,7 @@ class UserService {
             }
 
             const token = this.generateAccessToken(user);
-            const refreshToken = jwt.sign({ user }, 'secret', { expiresIn: '12hr' });
+            const refreshToken = jwt.sign({ user }, 'secret', { expiresIn: '8hr' });
 
             console.log(`${user.username} successfully logged in`);
 
@@ -44,6 +44,21 @@ class UserService {
                 refreshToken: refreshToken,
                 user: user.username,
             };
+        } catch (error: any) {
+            throw new Error(error.message);
+        }
+    }
+
+    async getUsers(): Promise<UserOutputDTO[]> {
+        try {
+            const users = await this.prisma.user.findMany();
+            // Map the Prisma entities to UserOutputDTO, excluding the password
+            const usersDTO: UserOutputDTO[] = users.map(user => ({
+                id: user.id,
+                username: user.username,
+                isAdmin: user.isAdmin,
+            }));
+            return usersDTO;
         } catch (error: any) {
             throw new Error(error.message);
         }
@@ -66,47 +81,46 @@ class UserService {
         }
     }
 
-    async refreshToken(refreshToken: string): Promise<TokenResponse> {
+    // Add a method to refresh the access token
+    async refreshAccessToken(refreshToken: string): Promise<TokenResponse> {
         try {
-            const token = jwt.decode(refreshToken) as jwt.JwtPayload | null;
+            // Verify the refresh token
+            const decodedRefreshToken = jwt.verify(refreshToken, 'secret') as jwt.JwtPayload;
 
-            if (!token) {
-                throw new Error('Invalid token');
-            }
-
+            // Extract user information
             const user = {
-                id: token?.id as number,
-                isAdmin: token?.isAdmin as boolean,
-                username: token?.username as string,
+                id: decodedRefreshToken.id as number,
+                isAdmin: decodedRefreshToken.isAdmin as boolean,
+                username: decodedRefreshToken.username as string,
                 password: '',
             };
 
-            const accessToken = this.generateAccessToken(user);
+            // Generate a new access token
+            const newAccessToken: string = this.generateAccessToken(user);
 
             return {
                 auth: true,
-                accessToken: accessToken,
+                accessToken: newAccessToken,
             };
         } catch (error: any) {
-            throw new Error(error.message);
+            throw new Error('Invalid refresh token');
         }
     }
 
+    // Generate an access token
     private generateAccessToken(user: any): string {
         const secretKey = 'secret';
-        const expiresIn = '1h';
+        const expiresIn = '1hr';
 
-        const accessToken = jwt.sign(
+        return jwt.sign(
             {
                 id: user.id,
                 username: user.username,
                 isAdmin: user.isAdmin,
             },
             secretKey,
-            { expiresIn }
+            {expiresIn}
         );
-
-        return accessToken;
     }
 }
 
