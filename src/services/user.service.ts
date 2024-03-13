@@ -20,7 +20,7 @@ class UserService {
     async login(username: string, password: string): Promise<TokenResponse> {
         try {
             const user = await this.prisma.user.findUnique({
-                where: { username },
+                where: {username},
             });
 
             if (!user) {
@@ -34,7 +34,7 @@ class UserService {
             }
 
             const token = this.generateAccessToken(user);
-            const refreshToken = jwt.sign({ user }, 'secret', { expiresIn: '8hr' });
+            const refreshToken = jwt.sign({user}, 'secret', {expiresIn: '8hr'});
 
             console.log(`${user.username} successfully logged in`);
 
@@ -49,6 +49,7 @@ class UserService {
         }
     }
 
+    // Get all users
     async getUsers(): Promise<UserOutputDTO[]> {
         try {
             const users = await this.prisma.user.findMany();
@@ -64,6 +65,7 @@ class UserService {
         }
     }
 
+    // Register a new user
     async register(createUserDTO: CreateUserDTO): Promise<User> {
         try {
             const saltRounds: number = 10;
@@ -80,6 +82,21 @@ class UserService {
             throw new Error(error.message);
         }
     }
+
+//Edit a user
+    async editUser(id: number, username: string, password: string): Promise<User> {
+        try {
+            const saltRounds: number = 10;
+            const hashedPassword: string = await bcrypt.hash(password, saltRounds);
+            return await this.prisma.user.update({
+                where: {id},
+                data: {username, password: hashedPassword},
+            });
+        } catch (error: any) {
+            throw new Error(error.message);
+        }
+    }
+
 
     // Add a method to refresh the access token
     async refreshAccessToken(refreshToken: string): Promise<TokenResponse> {
@@ -110,7 +127,7 @@ class UserService {
     // Generate an access token
     private generateAccessToken(user: any): string {
         const secretKey = 'secret';
-        const expiresIn = '1hr';
+        const expiresIn = '15s';
 
         return jwt.sign(
             {

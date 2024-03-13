@@ -24,8 +24,14 @@ router.get('/getall/:projectId', (req: Request, res: Response) =>
     itemController.getAllItems(req, res)
 );
 
+
+// Get Item by Id route
 router.get('/get/:itemId', (req: Request, res: Response) =>
     itemController.getItemWithPackageItems(req, res)
+);
+
+router.get('/getAll/packageItems/:projectId', (req: Request, res: Response) =>
+    itemController.getPackageItemsByProjectId(req, res)
 );
 
 router.post('/createpackageitem', (req: Request, res: Response) =>
@@ -38,7 +44,7 @@ router.get('/get-by-package-type/:packageTypeId', (req: Request, res: Response) 
 );
 
 
-router.delete('/delete/:id', (req: Request, res: Response) =>
+router.delete('/packageItem/delete/:id', (req: Request, res: Response) =>
     itemController.deletePackageItem(req, res)
 );
 

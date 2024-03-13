@@ -38,6 +38,7 @@ export class StakeholderService {
         }
     }
 
+    // Fetch a stakeholder by ID including tractRecords
     async getStakeholderById(stakeholderId: number): Promise<StakeholderWithTractRecords | null> {
         try {
             return await this.prisma.stakeholder.findUnique({

@@ -16,7 +16,6 @@ export class DeliveryController {
             // Input validation - Ensure that the request body contains necessary data.
             const deliveryData: DeliveryDTO = req.body;
             const newDelivery = await this.deliveryService.createDelivery(deliveryData);
-
             //const newDelivery: Delivery | null = await this.deliveryService.createDelivery(deliveryData);
             if (newDelivery) {
                 res.status(201).json(newDelivery);
@@ -29,6 +28,7 @@ export class DeliveryController {
         }
     }
 
+    // Get Delivery by ID
     async getDeliveryById(req: Request, res: Response): Promise<void> {
         try {
             const deliveryId: number = parseInt(req.params.deliveryId, 10);
@@ -44,6 +44,7 @@ export class DeliveryController {
         }
     }
 
+    // Cansel delivery by ID
     async cancelDelivery(req: Request, res: Response): Promise<void> {
         try {
             const deliveryId: number = parseInt(req.params.deliveryId, 10);

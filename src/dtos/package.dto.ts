@@ -1,7 +1,7 @@
 // package-add.dto.ts
 export interface PackageAddDTO {
-    selectedPackageTypeId: string;
-    selectedDeliveryId: string;
+    packageTypeId: string;
+    deliveryId: string;
     stakeholderId: string;
 }
 

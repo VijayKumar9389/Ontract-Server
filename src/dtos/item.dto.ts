@@ -7,7 +7,6 @@ export interface CreateItemDTO {
     quantity: number;
 }
 
-
 // Update item
 export interface UpdateItemDTO {
     name: string;
@@ -21,5 +20,4 @@ export interface UpdateItemDTO {
 export interface CreatePackageItemDTO {
     itemID: number;
     packageTypeID: number;
-    notes: string;
 }

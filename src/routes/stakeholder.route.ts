@@ -15,6 +15,10 @@ router.get('/getAllUniqueStreetAddresses/:projectId',  (req: Request, res: Respo
     stakeholderController.getAllUniqueStreetAddresses(req, res)
 );
 
+router.get('/getRelatedStakeholders/:stakeholderId',  (req: Request, res: Response) =>
+    stakeholderController.getRelatedStakeholders(req, res)
+);
+
 router.get('/getStakeholdersById/:stakeholderId',  (req: Request, res: Response) =>
     stakeholderController.getStakeholdersById(req, res)
 );

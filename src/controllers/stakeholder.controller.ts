@@ -3,6 +3,13 @@ import {Stakeholder} from '@prisma/client';
 import {StakeholderService} from '../services/stakeholder.service';
 import {StakeholderSummaryDto, StakeholderUpdateDTO, StakeholderWithTractRecords} from "../dtos/stakeholder.dto";
 
+interface RelatedStakeholder {
+    stakeholder: StakeholderWithTractRecords; // Assuming StakeholderWithTractRecords is your existing interface or type
+    isPhoneSame: boolean;
+    isMailingAddressSame: boolean;
+    isStreetAddressSame: boolean;
+}
+
 class StakeholderController {
     private stakeholderService: StakeholderService;
 
@@ -14,14 +21,77 @@ class StakeholderController {
     async updateStakeholder(req: Request, res: Response): Promise<void> {
         const stakeholderId: number = parseInt(req.params.id, 10);
         const updatedData: StakeholderUpdateDTO = req.body;
+
         // Validate stakeholderId
         try {
-            // Update stakeholder
             const updatedStakeholder: Stakeholder | null = await this.stakeholderService.updateStakeholderById(stakeholderId, updatedData);
             res.status(200).json(updatedStakeholder);
         } catch (error) {
             console.error('Error updating stakeholder:', error);
             res.status(500).json({error: 'Failed to update stakeholder'});
+        }
+    }
+
+    async getRelatedStakeholders(req: Request, res: Response): Promise<void> {
+
+        // Extract stakeholder ID from request parameters
+        const stakeholderId: number = parseInt(req.params.stakeholderId, 10);
+
+        try {
+            // Retrieve the selected stakeholder by ID
+            const selectedStakeholder: StakeholderWithTractRecords | null = await this.stakeholderService.getStakeholderById(stakeholderId);
+
+            // If the selected stakeholder does not exist, return a 404 error
+            if (!selectedStakeholder) {
+                res.status(404).json({ error: 'Stakeholder not found' });
+                return;
+            }
+
+            // Retrieve all stakeholders associated with the same project as the selected stakeholder
+            const stakeholders: StakeholderWithTractRecords[] | null = await this.stakeholderService.getStakeholdersByProjectId(selectedStakeholder.projectId);
+
+            // Filter and map related stakeholders based on matching phone number, mailing address, or street address
+            const relatedStakeholders: RelatedStakeholder[] = stakeholders
+                // Filter out the selected stakeholder
+                .filter(stakeholder => stakeholder.id !== selectedStakeholder.id)
+                // Filter stakeholders based on matching phone number, mailing address, or street address
+                .filter(stakeholder =>
+                    // Check if the stakeholder's phone number is not blank and matches the selected stakeholder's phone number
+                    (stakeholder.phoneNumber && stakeholder.phoneNumber !== '' && stakeholder.phoneNumber === selectedStakeholder.phoneNumber) ||
+                    // Check if the stakeholder's mailing address is not blank and matches the selected stakeholder's mailing address
+                    (stakeholder.mailingAddress && stakeholder.mailingAddress !== '' && stakeholder.mailingAddress === selectedStakeholder.mailingAddress) ||
+                    // Check if the stakeholder's street address is not blank and matches the selected stakeholder's street address
+                    (stakeholder.streetAddress && stakeholder.streetAddress !== '' && stakeholder.streetAddress === selectedStakeholder.streetAddress)
+                )
+                // Map stakeholders to include additional information such as whether their phone numbers match
+                .map((stakeholder) => {
+                    const isMailingAddressSame = stakeholder.mailingAddress === selectedStakeholder.mailingAddress;
+                    const isStreetAddressSame = stakeholder.streetAddress === selectedStakeholder.streetAddress;
+                    // Check if any of the selected stakeholder's phone numbers match any of the current stakeholder's phone numbers
+                    const isPhoneSame: boolean = selectedStakeholder.phoneNumber.split(',').some(selectedClientPhone => {
+                        const selectedClientPhoneType = selectedClientPhone.split(':')[0];
+                        const selectedClientPhoneNumber = selectedClientPhone.split(':')[1];
+                        return stakeholder.phoneNumber.split(',').some(clientPhone => {
+                            const clientPhoneType = clientPhone.split(':')[0];
+                            const clientPhoneNumber = clientPhone.split(':')[1];
+                            return clientPhoneType === selectedClientPhoneType && clientPhoneNumber === selectedClientPhoneNumber;
+                        });
+                    });
+
+                    return {
+                        stakeholder,
+                        isPhoneSame,
+                        isMailingAddressSame,
+                        isStreetAddressSame,
+                    };
+                });
+
+            // Send the list of related stakeholders as a response
+            res.status(200).json(relatedStakeholders);
+        } catch (error) {
+            // Handle any errors that occur during the process
+            console.error('Error fetching related stakeholders:', error);
+            res.status(500).json({ error: 'Failed to fetch related stakeholders' });
         }
     }
 

@@ -8,7 +8,7 @@ export interface DeliveryDTO {
     projectId: number;
     stakeholderId: number;
     packageTypeId: number;
-    delivery_method: string; // Added delivery_method
+    delivery_method: string;
     carrier: string; // Added carrier
     completed: boolean; // Added completed
     date: string; // Adjusted date type based on your needs (string, Date, etc.)

@@ -170,11 +170,11 @@ export class ItemController {
 
     async createPackageItem(req: Request, res: Response): Promise<void> {
         try {
-            const { itemID, packageTypeID, notes } = req.body as CreatePackageItemDTO;
+            const { itemID, packageTypeID } = req.body as CreatePackageItemDTO;
 
             // Validate input if necessary
 
-            const packageItem = await this.itemService.createPackageItem(itemID, packageTypeID, notes);
+            const packageItem = await this.itemService.createPackageItem(itemID, packageTypeID);
             res.status(201).json(packageItem);
         } catch (error) {
             console.error('Error creating package item:', error);
@@ -201,6 +201,18 @@ export class ItemController {
             res.status(200).json(items);
         } catch (error) {
             console.error('Error fetching items by packageTypeId:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+
+    // Get package items by Project Id
+    async getPackageItemsByProjectId(req: Request, res: Response): Promise<void> {
+        try {
+            const { projectId } = req.params;
+            const packageItems = await this.itemService.getPackageItemsByProjectId(Number(projectId));
+            res.status(200).json(packageItems);
+        } catch (error) {
+            console.error('Error fetching package items by projectId:', error);
             res.status(500).json({ error: 'Internal Server Error' });
         }
     }

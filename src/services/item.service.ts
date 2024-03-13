@@ -33,6 +33,7 @@ export class ItemService {
         });
     }
 
+    // Get Package Items by Item ID
     getItemWithPackageItems(itemId: number): Promise<Item | null> {
         return this.prisma.item.findUnique({
             where: { id: itemId },
@@ -40,6 +41,18 @@ export class ItemService {
         });
     }
 
+    // Get package Item by project ID
+    getPackageItemsByProjectId(projectId: number): Promise<PackageItem[]> {
+        return this.prisma.packageItem.findMany({
+            where: {
+                item: {
+                    projectId: projectId,
+                },
+            },
+        });
+    }
+
+    //Delete Item by ID
     async deleteItem(itemId: number): Promise<void> {
         try {
             // Retrieve the item from the database along with its associated packageItems
@@ -53,21 +66,19 @@ export class ItemService {
                 throw new Error('Item not found');
             }
 
-            console.log(item.packageItems)
-
             // Check if the item is associated with any packageItems
             if (item.packageItems.length > 0) {
                 throw new Error('Item is associated with package items. Cannot delete.');
             }
 
-            // // Delete the item from the database
-            // await this.prisma.item.delete({
-            //     where: { id: itemId },
-            // });
-            //
-            // // Remove the associated image file from the file system
-            // const imagePath = path.join('uploads', path.basename(item.image));
-            // fs.unlinkSync(imagePath);
+            // Delete the item from the database
+            await this.prisma.item.delete({
+                where: { id: itemId },
+            });
+
+            // Remove the associated image file from the file system
+            const imagePath = path.join('uploads', path.basename(item.image));
+            fs.unlinkSync(imagePath);
         } catch (error) {
             console.error('Error deleting item:', error);
             throw new Error('Failed to delete item');
@@ -90,12 +101,11 @@ export class ItemService {
     }
 
     // Create a new package item
-    async createPackageItem(itemID: number, packageTypeID: number, notes: string): Promise<PackageItem> {
+    async createPackageItem(itemID: number, packageTypeID: number): Promise<PackageItem> {
         try {
             const itemId: number = 1; // Assuming you get the item ID as a number
             return await this.prisma.packageItem.create({
                 data: {
-                    notes: notes,
                     packageType: {
                         connect: {
                             id: packageTypeID

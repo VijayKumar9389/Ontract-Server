@@ -55,13 +55,13 @@ export class PackageController {
     async createPackageForExistingDelivery(req: Request, res: Response): Promise<void> {
         try {
             // Extract data from the request body using the PackageAddDTO
-            const { selectedPackageTypeId, selectedDeliveryId, stakeholderId }: PackageAddDTO = req.body;
+            const { packageTypeId, deliveryId, stakeholderId }: PackageAddDTO = req.body;
 
             // Call the service method to create a new package for an existing delivery
             const newPackage = await this.packageService.createPackageForExistingDelivery(
                 parseInt(stakeholderId),  // Assuming stakeholderId is a number
-                parseInt(selectedPackageTypeId),
-                parseInt(selectedDeliveryId)
+                parseInt(packageTypeId),
+                parseInt(deliveryId)
             );
 
             // Respond with the created package

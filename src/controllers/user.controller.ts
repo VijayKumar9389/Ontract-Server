@@ -66,6 +66,18 @@ class UserController {
         }
     }
 
+    // Edit a user
+    async editUser(req: Request, res: Response): Promise<void> {
+        const { id, username, password } = req.body;
+        try {
+            const user: User = await this.userService.editUser(id, username, password);
+            res.status(200).json(user);
+        } catch (error) {
+            console.error('Error editing user:', error);
+            res.status(500).json({error: 'Failed to edit user'});
+        }
+    }
+
     async refreshAccessToken(req: Request, res: Response): Promise<void> {
         const refreshToken = req.cookies.refreshToken;
 
@@ -117,11 +129,10 @@ class UserController {
 
             // Verify the refresh token
             const decodedToken = jwt.verify(refreshToken, 'secret') as jwt.JwtPayload;
-            const user: User = {
-                id: decodedToken.id as number,
-                isAdmin: decodedToken.isAdmin as boolean,
-                username: decodedToken.username as string,
-                password: decodedToken.password as string,
+            const user: UserOutputDTO = {
+                id: decodedToken.user.id as number,
+                isAdmin: decodedToken.user.isAdmin as boolean,
+                username: decodedToken.user.username as string,
             };
 
             // If verification is successful, return authentication success
@@ -139,6 +150,42 @@ class UserController {
             }
         }
     }
+
+    async verifyAdminStatus(req: Request, res: Response): Promise<void> {
+        const refreshToken = req.cookies.refreshToken;
+
+        try {
+            if (!refreshToken) {
+                res.status(401).json({ auth: false });
+                return;
+            }
+
+            // Verify the refresh token
+            const decodedToken = jwt.verify(refreshToken, 'secret') as jwt.JwtPayload;
+            const user: UserOutputDTO = {
+                id: decodedToken.user.id as number,
+                isAdmin: decodedToken.user.isAdmin as boolean,
+                username: decodedToken.user.username as string,
+            };
+
+            // If verification is successful, return authentication success along with isAdmin status
+            res.json({ auth: true, isAdmin: user.isAdmin });
+        } catch (error) {
+            // Handle token verification failure
+            console.error('Error verifying user session:', error);
+            // If the token has expired, return a 401 status code
+            if (error instanceof TokenExpiredError) {
+                // Token has expired
+                res.status(401).json({ auth: false, error: 'Token expired' });
+            } else {
+                // Other verification errors
+                res.status(500).json({ auth: false, error: 'Failed to verify session' });
+            }
+        }
+    }
+
+
+
 }
 
 export default UserController;

@@ -1,6 +1,6 @@
-import { DeliveryDTO, PackageTypeDTO } from '../dtos/delivery.dto';
-import { PrismaClient, Package, PackageType } from '@prisma/client';
-import { StakeholderService } from './stakeholder.service';
+import {DeliveryDTO, PackageTypeDTO} from '../dtos/delivery.dto';
+import {PrismaClient, Package, PackageType} from '@prisma/client';
+import {StakeholderService} from './stakeholder.service';
 
 class PackageService {
     private prisma: PrismaClient;
@@ -50,17 +50,17 @@ class PackageService {
             return newPackage;
         } catch (error) {
             console.error('Error creating package for existing delivery:', error);
-            
+
             throw new Error('Failed to create package for existing delivery');
         }
     }
 
     // Cancel a package and reset the stakeholder package ID to null
-    async  cancelPackage(packageId: number, stakeholderId: number): Promise<void> {
+    async cancelPackage(packageId: number, stakeholderId: number): Promise<void> {
         try {
             // Find the package to be removed
             const packageToRemove = await this.prisma.package.findUnique({
-                where: { id: packageId },
+                where: {id: packageId},
             });
 
             if (!packageToRemove) {
@@ -69,12 +69,12 @@ class PackageService {
 
             // Remove the package
             await this.prisma.package.delete({
-                where: { id: packageId },
+                where: {id: packageId},
             });
 
             // Set stakeholder's package ID to null
             await this.prisma.stakeholder.update({
-                where: { id: stakeholderId },
+                where: {id: stakeholderId},
                 data: {
                     packageId: null,
                 },
@@ -99,7 +99,7 @@ class PackageService {
     // Change the package type for a package
     async changePackagePackageType(packageId: number, packageTypeId: number): Promise<Package> {
         return this.prisma.package.update({
-            where: { id: packageId },
+            where: {id: packageId},
             data: {
                 packageTypeId,
             },
@@ -155,10 +155,9 @@ class PackageService {
     }
 
 
-
     async getPackageTypeById(packageTypeId: number): Promise<PackageType | null> {
         return this.prisma.packageType.findUnique({
-            where: { id: packageTypeId },
+            where: {id: packageTypeId},
             include: {
                 items: {
                     include: {
@@ -193,19 +192,29 @@ class PackageService {
     // Delete package type and all associated items
     async deletePackageType(id: number): Promise<void> {
         try {
-            // Example of deleting associated items before deleting the package type
-            await this.prisma.packageItem.deleteMany({
+            const packageType = await this.prisma.packageType.findUnique({
                 where: {
-                    packageTypeId: id,
+                    id: id,
+                },
+                include: {
+                    items: true,
                 },
             });
 
-            // Now you can safely delete the package type
+            if (!packageType) {
+                throw new Error('Package type not found');
+            }
+
+            if (packageType.items.length > 0) {
+                throw new Error('Package type is associated with package items. Cannot delete.');
+            }
+
             await this.prisma.packageType.delete({
                 where: {
                     id: id,
                 },
             });
+
         } catch (error) {
             console.error('Error deleting package type and associated items:', error);
             throw new Error('Failed to delete package type and associated items');
