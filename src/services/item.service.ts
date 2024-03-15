@@ -27,6 +27,22 @@ export class ItemService {
         }
     }
 
+// Service method to update an item
+    async updateItem(itemId: number, itemData: Item): Promise<Item> {
+        try {
+            const updatedItem: Item = await this.prisma.item.update({
+                where: { id: itemId },
+                data: {
+                    ...itemData,
+                },
+            });
+            return updatedItem;
+        } catch (error) {
+            console.error('Error updating item:', error);
+            throw new Error('Failed to update item');
+        }
+    }
+
     getItemById(itemId: number): Promise<Item | null> {
         return this.prisma.item.findUnique({
             where: { id: itemId },
@@ -124,6 +140,8 @@ export class ItemService {
             throw new Error('Failed to create Package Item');
         }
     }
+
+    // Update an item by its ID
 
     // Delete a package item by its ID
     async deletePackageItem(packageItemId: number): Promise<void> {

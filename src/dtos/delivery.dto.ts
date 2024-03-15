@@ -1,17 +1,17 @@
-import {Delivery, Item, Stakeholder, PackageType, Package} from "@prisma/client";
+import {Delivery, Item, Package, PackageType, Stakeholder} from "@prisma/client";
 
-export interface DeliveryDTO {
+// Create a new delivery
+export interface CreateDeliveryDTO {
     route: string;
     destination: string;
     notes: string;
-    status: string;
     projectId: number;
     stakeholderId: number;
     packageTypeId: number;
     delivery_method: string;
-    carrier: string; // Added carrier
-    completed: boolean; // Added completed
-    date: string; // Adjusted date type based on your needs (string, Date, etc.)
+    carrier: string;
+    completed: boolean;
+    date: string;
 }
 
 export interface PackageDTO {
@@ -38,3 +38,10 @@ export type PackageTypeWithItems = PackageType & {
     items: Item[];
 } | null;
 
+// Edit delivery details
+export interface EditDeliveryDTO {
+    route: string;
+    destination: string;
+    delivery_method: string;
+    notes: string;
+}

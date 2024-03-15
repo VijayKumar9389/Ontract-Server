@@ -1,8 +1,16 @@
 // delivery.service.ts
 import {PrismaClient, Delivery, Package} from '@prisma/client';
-import {DeliveryDTO, DeliveryWithNestedObjects} from '../dtos/delivery.dto';
+import {CreateDeliveryDTO, DeliveryWithNestedObjects} from '../dtos/delivery.dto';
 import PackageService from './package.service';
 import {StakeholderService} from "./stakeholder.service";
+
+// Edit delivery details
+export interface EditDeliveryDTO {
+    route: string;
+    destination: string;
+    delivery_method: string;
+    notes: string;
+}
 
 class DeliveryService {
     private packageService: PackageService;
@@ -14,7 +22,7 @@ class DeliveryService {
     }
 
     // Create a new delivery
-    async createDelivery(deliveryData: DeliveryDTO): Promise<Delivery | null> {
+    async createDelivery(deliveryData: CreateDeliveryDTO): Promise<Delivery | null> {
         try {
             const currentDate: Date = new Date();
             const newDelivery: Delivery = await this.createNewDelivery(deliveryData, currentDate);
@@ -71,17 +79,32 @@ class DeliveryService {
         }
     }
 
+    async setCompletedDelivery(deliveryId: number, date: string): Promise<Delivery | null> {
+        try {
+            const updatedDelivery: Delivery = await this.prisma.delivery.update({
+                where: { id: deliveryId },
+                data: {
+                    completed: true,
+                    date: date,
+                },
+            });
+            return this.fetchDeliveryWithPackages(deliveryId);
+        } catch (error) {
+            console.error('Error setting delivery completed:', error);
+            return null;
+        }
+    }
+
     // Create a new delivery in the database
-    private async createNewDelivery(deliveryData: DeliveryDTO, currentDate: Date): Promise<Delivery> {
+    private async createNewDelivery(deliveryData: CreateDeliveryDTO, currentDate: Date): Promise<Delivery> {
         return this.prisma.delivery.create({
             data: {
-                date: currentDate.toISOString(),
-                status: "pending",
+                date: null,
                 route: deliveryData.route,
                 destination: deliveryData.destination,
                 notes: deliveryData.notes,
                 delivery_method: deliveryData.delivery_method, // Include new field
-                carrier: '', // Include new field
+                carrier: null, // Include new field
                 completed: false, // Include new field
                 projectId: deliveryData.projectId,
             },
@@ -90,6 +113,29 @@ class DeliveryService {
             },
         });
     }
+
+    // Edit a delivery in the database
+    async editDelivery(deliveryId: number, deliveryData: EditDeliveryDTO): Promise<Delivery | null> {
+        try {
+            // Update the delivery with the new data
+            await this.prisma.delivery.update({
+                where: { id: deliveryId },
+                data: {
+                    route: deliveryData.route,
+                    destination: deliveryData.destination,
+                    delivery_method: deliveryData.delivery_method,
+                    notes: deliveryData.notes,
+                },
+            });
+
+            // Fetch the updated delivery with its packages
+            return this.fetchDeliveryWithPackages(deliveryId);
+        } catch (error) {
+            console.error('Error editing delivery:', error);
+            return null;
+        }
+    }
+
 
     // Fetch a delivery with its packages from the database
     private async fetchDeliveryWithPackages(deliveryId: number): Promise<Delivery | null> {

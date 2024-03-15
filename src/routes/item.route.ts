@@ -11,7 +11,7 @@ router.post('/create', upload.single('image'), (req: Request, res: Response) =>
     itemController.createItem(req, res)
 );
 
-router.put('/update/:itemId', (req: Request, res: Response) =>
+router.put('/update/:itemId', upload.single('image'), (req: Request, res: Response) =>
     itemController.updateItem(req, res)
 );
 

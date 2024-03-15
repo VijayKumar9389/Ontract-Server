@@ -78,6 +78,7 @@ class UserController {
         }
     }
 
+    // Method to refresh the access token
     async refreshAccessToken(req: Request, res: Response): Promise<void> {
         const refreshToken = req.cookies.refreshToken;
 
@@ -183,9 +184,6 @@ class UserController {
             }
         }
     }
-
-
-
 }
 
 export default UserController;

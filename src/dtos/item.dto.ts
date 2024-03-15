@@ -9,11 +9,11 @@ export interface CreateItemDTO {
 
 // Update item
 export interface UpdateItemDTO {
+    id: number;
     name: string;
     description: string;
-    image: string;
-    file?: Express.Multer.File | null;
     quantity: number;
+    image?: Express.Multer.File | null;
 }
 
 // PackageItem.dto.ts

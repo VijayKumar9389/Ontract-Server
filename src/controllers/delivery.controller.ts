@@ -1,5 +1,5 @@
 import {Request, Response} from 'express';
-import {DeliveryDTO, DeliveryWithNestedObjects} from '../dtos/delivery.dto';
+import {CreateDeliveryDTO, DeliveryWithNestedObjects, EditDeliveryDTO} from '../dtos/delivery.dto';
 import DeliveryService from "../services/delivery.service";
 import {Delivery} from "@prisma/client";
 
@@ -14,7 +14,7 @@ export class DeliveryController {
     async createDelivery(req: Request, res: Response): Promise<void> {
         try {
             // Input validation - Ensure that the request body contains necessary data.
-            const deliveryData: DeliveryDTO = req.body;
+            const deliveryData: CreateDeliveryDTO = req.body;
             const newDelivery = await this.deliveryService.createDelivery(deliveryData);
             //const newDelivery: Delivery | null = await this.deliveryService.createDelivery(deliveryData);
             if (newDelivery) {
@@ -24,6 +24,23 @@ export class DeliveryController {
             }
         } catch (error: any) {
             console.error('Error creating delivery:', error);
+            res.status(500).json({error: 'Internal Server Error'});
+        }
+    }
+
+    // Edit delivery details
+    async editDelivery(req: Request, res: Response): Promise<void> {
+        try {
+            const deliveryId: number = parseInt(req.params.deliveryId, 10);
+            const deliveryData: EditDeliveryDTO = req.body;
+            const updatedDelivery: Delivery | null = await this.deliveryService.editDelivery(deliveryId, deliveryData);
+            if (updatedDelivery) {
+                res.status(200).json(updatedDelivery);
+            } else {
+                res.status(404).json({error: 'Delivery not found'});
+            }
+        } catch (error: any) {
+            console.error('Error editing delivery:', error);
             res.status(500).json({error: 'Internal Server Error'});
         }
     }
@@ -55,6 +72,21 @@ export class DeliveryController {
             res.status(500).json({error: 'Internal Server Error'});
         }
     }
+
+    // Set Completed delivery by ID
+    async setCompletedDelivery(req: Request, res: Response): Promise<void> {
+        try {
+            const deliveryId: number = parseInt(req.params.deliveryId, 10);
+            const completedDate: string = req.body.date;
+            await this.deliveryService.setCompletedDelivery(deliveryId, completedDate);
+            res.status(204).json();
+        } catch (error) {
+            console.error('Error in setCompletedDelivery:', error);
+            res.status(500).json({error: 'Internal Server Error'});
+        }
+    }
+
+
 
     // Get deliveries report
     async getDeliveriesReport(req: Request, res: Response): Promise<void> {
@@ -94,8 +126,8 @@ export class DeliveryController {
             });
 
             // Count of deliveries with status "pending" or "completed"
-            const pendingDeliveryCount = deliveriesReport.filter((delivery) => delivery.status === "pending").length;
-            const completedDeliveryCount = deliveriesReport.filter((delivery) => delivery.status === "completed").length;
+            const pendingDeliveryCount = deliveriesReport.filter((delivery) => delivery.completed).length;
+            const completedDeliveryCount = deliveriesReport.filter((delivery) => delivery.completed).length;
 
             res.status(200).json({
                 count,

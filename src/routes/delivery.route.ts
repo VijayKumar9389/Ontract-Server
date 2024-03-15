@@ -9,11 +9,22 @@ router.post('/create/delivery', (req: Request, res: Response) =>
     deliveryController.createDelivery(req, res)
 );
 
+// Edit delivery details
+router.put('/update/:deliveryId', (req: Request, res: Response) =>
+    deliveryController.editDelivery(req, res)
+);
+
+// Set Completed delivery by ID
+router.put('/complete/:deliveryId', (req: Request, res: Response) =>
+    deliveryController.setCompletedDelivery(req, res)
+);
+
 // Get deliveries by projectId
 router.get('/getbyproject/:projectId', (req: Request, res: Response) =>
     deliveryController.getDeliveriesByProjectId(req, res)
 );
 
+// Get delivery by deliveryId
 router.get('/getbyid/:deliveryId', (req: Request, res: Response) =>
     deliveryController.getDeliveryById(req, res)
 );

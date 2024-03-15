@@ -1,4 +1,4 @@
-import {DeliveryDTO, PackageTypeDTO} from '../dtos/delivery.dto';
+import {CreateDeliveryDTO, PackageTypeDTO} from '../dtos/delivery.dto';
 import {PrismaClient, Package, PackageType} from '@prisma/client';
 import {StakeholderService} from './stakeholder.service';
 
@@ -13,7 +13,7 @@ class PackageService {
     }
 
     // Create a new package for a new delivery
-    async createNewPackage(deliveryData: DeliveryDTO, deliveryId: number): Promise<Package> {
+    async createNewPackage(deliveryData: CreateDeliveryDTO, deliveryId: number): Promise<Package> {
         try {
             // Create a new package
             const newPackage: Package = await this.prisma.package.create({
