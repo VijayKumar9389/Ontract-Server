@@ -12,6 +12,7 @@ export class PackageController {
         this.packageService = new PackageService();
     }
 
+    //Create a new package type
     async createPackageType(req: Request, res: Response): Promise<void> {
         try {
             // Extract projectId from request parameters
@@ -30,6 +31,7 @@ export class PackageController {
         }
     }
 
+    // Change a package's package type
     async changePackagePackageType(req: Request, res: Response): Promise<void> {
         try {
             const { packageId, packageTypeId } = req.params;
@@ -41,6 +43,7 @@ export class PackageController {
         }
     }
 
+    // Cancel a package
     async cancelPackage(req: Request, res: Response): Promise<void> {
         try {
             const { packageId, stakeholderId } = req.params;
@@ -52,6 +55,7 @@ export class PackageController {
         }
     }
 
+    // Create a new package and add it to an existing delivery
     async createPackageForExistingDelivery(req: Request, res: Response): Promise<void> {
         try {
             // Extract data from the request body using the PackageAddDTO
@@ -73,6 +77,7 @@ export class PackageController {
         }
     }
 
+    // Create a new package and delivery
     async getPackageTypeById(req: Request, res: Response): Promise<void> {
         try {
             const { packageTypeId } = req.params;
@@ -87,6 +92,7 @@ export class PackageController {
             res.status(500).json({ error: 'Internal Server Error' });
         }
     }
+
 
     async getAllPackageTypes(req: Request, res: Response): Promise<void> {
         try {
@@ -121,6 +127,7 @@ export class PackageController {
         try {
             const { packageItemId } = req.params;
             const packages = await this.packageService.getPackageByPackageItemId(parseInt(packageItemId, 10));
+            console.log('Retrieved packages:', packages);
             res.status(200).json(packages);
         } catch (error) {
             console.error(error);

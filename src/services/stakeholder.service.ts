@@ -62,6 +62,40 @@ export class StakeholderService {
         });
     }
 
+    // Updated stakeholder consultation by delivery ID
+    async updateStakeholderConsultationByDeliveryId(deliveryId: number, consultation: string): Promise<void> {
+        try {
+            // Find packages associated with the delivery ID
+            const packages = await this.prisma.package.findMany({
+                where: {
+                    deliveryId: deliveryId,
+                },
+                include: {
+                    stakeholder: true,
+                },
+            });
+
+            // Update stakeholder consultation for each stakeholder
+            for (const pkg of packages) {
+                if (pkg.stakeholder) {
+                    await this.prisma.stakeholder.update({
+                        where: {
+                            id: pkg.stakeholderId,
+                        },
+                        data: {
+                            consultation: consultation,
+                        },
+                    });
+                }
+            }
+
+            console.log('Stakeholder consultation updated successfully');
+        } catch (error) {
+            console.error('Error updating stakeholder consultation:', error);
+            throw new Error('Failed to update stakeholder consultation');
+        }
+    }
+
     // Fetch all unique street addresses for stakeholders by projectId
     async getAllUniqueStreetAddresses(projectId: number): Promise<string[]> {
         try {

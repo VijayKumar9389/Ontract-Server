@@ -121,10 +121,12 @@ class PackageService {
                         },
                     },
                 },
+                delivery: true, // Include the related delivery
                 stakeholder: true,
             },
         });
     }
+
 
     async getPackageByPackageItemId(packageItemId: number): Promise<Package[]> {
         return this.prisma.package.findMany({
@@ -149,10 +151,12 @@ class PackageService {
                         },
                     },
                 },
+                delivery: true, // Include the related delivery
                 stakeholder: true,
             },
         });
     }
+
 
 
     async getPackageTypeById(packageTypeId: number): Promise<PackageType | null> {

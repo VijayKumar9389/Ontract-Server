@@ -50,7 +50,7 @@ export class ItemController {
         }
     }
 
-// Assuming this method is inside a class or controller
+    // Update an existing item
     async updateItem(req: Request, res: Response): Promise<void> {
         try {
             const itemId: number = parseInt(req.params.itemId, 10);
@@ -66,6 +66,7 @@ export class ItemController {
                 return;
             }
 
+            // Validate request body
             if (imageFile) {
                 // Remove the current image file if it exists
                 if (currentItem.image) {
@@ -95,7 +96,7 @@ export class ItemController {
         }
     }
 
-
+    //Get an item along with its package items by item ID
     async getItemWithPackageItems(req: Request, res: Response): Promise<void> {
         try {
             const itemId: number = parseInt(req.params.itemId, 10);
@@ -107,11 +108,11 @@ export class ItemController {
         }
     }
 
+    // Delete an item by Item ID
     async deleteItem(req: Request, res: Response): Promise<void> {
         try {
             // Get item ID from request parameters
             const itemId: number = parseInt(req.params.itemId, 10);
-
             // Call the item service to delete the item
             await this.itemService.deleteItem(itemId);
             res.status(204).json(); // Respond with success status
@@ -121,14 +122,13 @@ export class ItemController {
         }
     }
 
-// Get all items by project ID
+    // Get all items by project ID
     async getAllItems(req: Request, res: Response): Promise<void> {
         try {
+            // Get project ID from request parameters
             const projectId: string = req.params.projectId;
-
             // Retrieve items by project ID using the itemService
             const items: Item[] = await this.itemService.getAllItemsByProjectId(projectId);
-
             res.status(200).json(items);
         } catch (error) {
             console.error('Error fetching items:', error);
@@ -136,12 +136,11 @@ export class ItemController {
         }
     }
 
+    // Create a new package item
     async createPackageItem(req: Request, res: Response): Promise<void> {
         try {
             const {itemID, packageTypeID} = req.body as CreatePackageItemDTO;
-
             // Validate input if necessary
-
             const packageItem = await this.itemService.createPackageItem(itemID, packageTypeID);
             res.status(201).json(packageItem);
         } catch (error) {
@@ -150,6 +149,7 @@ export class ItemController {
         }
     }
 
+    // Delete a package item by ID
     async deletePackageItem(req: Request, res: Response): Promise<void> {
         try {
             const {id} = req.params;

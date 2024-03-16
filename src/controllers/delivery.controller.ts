@@ -1,13 +1,16 @@
 import {Request, Response} from 'express';
 import {CreateDeliveryDTO, DeliveryWithNestedObjects, EditDeliveryDTO} from '../dtos/delivery.dto';
 import DeliveryService from "../services/delivery.service";
-import {Delivery} from "@prisma/client";
+import {Delivery, Stakeholder} from "@prisma/client";
+import {StakeholderService} from "../services/stakeholder.service";
 
 export class DeliveryController {
     private deliveryService: DeliveryService;
+    private stakeholderService: StakeholderService;
 
     constructor() {
         this.deliveryService = new DeliveryService();
+        this.stakeholderService = new StakeholderService();
     }
 
     // Create a new delivery
@@ -79,14 +82,13 @@ export class DeliveryController {
             const deliveryId: number = parseInt(req.params.deliveryId, 10);
             const completedDate: string = req.body.date;
             await this.deliveryService.setCompletedDelivery(deliveryId, completedDate);
+            await this.stakeholderService.updateStakeholderConsultationByDeliveryId(deliveryId, completedDate);
             res.status(204).json();
         } catch (error) {
             console.error('Error in setCompletedDelivery:', error);
             res.status(500).json({error: 'Internal Server Error'});
         }
     }
-
-
 
     // Get deliveries report
     async getDeliveriesReport(req: Request, res: Response): Promise<void> {
@@ -129,6 +131,7 @@ export class DeliveryController {
             const pendingDeliveryCount = deliveriesReport.filter((delivery) => delivery.completed).length;
             const completedDeliveryCount = deliveriesReport.filter((delivery) => delivery.completed).length;
 
+            // Return the report
             res.status(200).json({
                 count,
                 stakeholderCount,
@@ -143,8 +146,7 @@ export class DeliveryController {
         }
     }
 
-
-
+    //Get deliveries by project Id
     async getDeliveriesByProjectId(req: Request, res: Response): Promise<void> {
         try {
             const projectId: number = parseInt(req.params.projectId, 10);
@@ -156,6 +158,7 @@ export class DeliveryController {
         }
     }
 
+    //get deliveries by Package Id
     async getDeliveriesByPackageId(req: Request, res: Response): Promise<void> {
         try {
             const packageId: number = parseInt(req.params.packageId, 10);
