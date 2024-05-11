@@ -122,6 +122,19 @@ export class PackageController {
         }
     }
 
+    // update package type
+    async updatePackageType(req: Request, res: Response): Promise<void> {
+        try {
+            const id: number = parseInt(req.params.packageTypeId, 10);
+            const packageTypeDTO: PackageTypeDTO = req.body;
+            const updatedPackageType: PackageType = await this.packageService.updatePackageType(id, packageTypeDTO);
+            res.status(200).json(updatedPackageType);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+
     async getPackageByPackageItemId(req: Request, res: Response): Promise<void> {
         console.log('Received package item ID:', req.params.packageItemId);
         try {

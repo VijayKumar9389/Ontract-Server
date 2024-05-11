@@ -1,6 +1,7 @@
 import express, { Express, Response, Request } from 'express';
 import cors from 'cors';
 import path from "path";
+import dotenv from 'dotenv';
 import cookieParser from "cookie-parser";
 import validateToken from "./middleware/auth";
 
@@ -12,16 +13,16 @@ import itemRoutes from "./routes/item.route";
 import stakeholderRoutes from "./routes/stakeholder.route";
 import tractRecordRoute from "./routes/tract-record.route";
 
+// Load environment variables from .env file
+dotenv.config();
+
 // Create a new express application instance
 const app: Express = express();
-const port: number = 3005;
+const port: number = parseInt(process.env.PORT || '3005', 10);
 
 // enable cors
 app.use(cors({
-    origin: ['http://localhost:5173',
-        'http://localhost:4200',
-        'http://localhost:5174',
-    ],
+    origin: process.env.ORIGIN,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -47,12 +48,12 @@ app.get('/images/:name', (req: Request, res: Response): void => {
 
 // api routes
 app.use('/user', userRoutes);
-app.use('/project', projectRoutes);
-app.use('/delivery', deliveryRoute);
-app.use('/package', packageRoute);
-app.use('/item', itemRoutes);
-app.use('/stakeholder', stakeholderRoutes);
-app.use('/tract-record', tractRecordRoute);
+app.use('/project', validateToken(false), projectRoutes);
+app.use('/delivery',  validateToken(false), deliveryRoute);
+app.use('/package', validateToken(false), packageRoute);
+app.use('/item', validateToken(false), itemRoutes);
+app.use('/stakeholder', validateToken(false), stakeholderRoutes);
+app.use('/tract-record', validateToken(false),  tractRecordRoute);
 
 // start the express server
 app.listen(port, (): void => {

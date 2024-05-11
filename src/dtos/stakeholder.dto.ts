@@ -1,4 +1,8 @@
-import {Delivery, Stakeholder, TractRecord} from "@prisma/client";
+import {Stakeholder, TractRecord} from "@prisma/client";
+
+export interface StakeholderWithTractRecords extends Stakeholder {
+    tractRecords: TractRecord[];
+}
 
 export interface StakeholderUpdateDTO {
     name: string;
@@ -30,4 +34,3 @@ export interface StakeholderSummaryDto {
     contactedNoCount: number;
 }
 
-export type StakeholderWithTractRecords = Stakeholder & { tractRecords: TractRecord[] };

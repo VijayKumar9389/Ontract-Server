@@ -25,6 +25,30 @@ export interface ProjectRecordInputDTO {
     pipelineStatus: string;
 }
 
+export interface ProjectRecordOutputDTO {
+    tract: number;
+    pin: string;
+    structure: string;
+    interest: string;
+    stakeholderStatus: string;
+    name: string;
+    streetAddress: string;
+    mailingAddress: string;
+    phoneNumber: string;
+    occupants: number;
+    worksLand: string;
+    contacted: string;
+    attempts: string;
+    consultation: string;
+    followUp: string;
+    tractComments: string;
+    pageNo: string;
+    keepDelete: string;
+    email: string;
+    Commodity: string;
+    pipelineStatus: string;
+}
+
 export interface TractRecordInputDTO {
     tract: number;
     position: number;
@@ -62,4 +86,11 @@ export interface ProjectInputDTO {
     notes: string;
     surveyLink: string;
     projectRecords: ProjectRecordInputDTO[];
+}
+
+export interface EditProjectInputDTO {
+    name: string;
+    year: number;
+    notes: string;
+    surveyLink: string;
 }

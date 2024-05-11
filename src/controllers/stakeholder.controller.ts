@@ -10,6 +10,22 @@ interface RelatedStakeholder {
     isStreetAddressSame: boolean;
 }
 
+interface Location {
+    province: string;
+    count: number;
+    cities: City[];
+}
+
+interface City {
+    name: string;
+    count: number;
+}
+
+export interface LocationData {
+    locations: Location[];
+}
+
+
 class StakeholderController {
     private stakeholderService: StakeholderService;
 
@@ -148,7 +164,7 @@ class StakeholderController {
             const contactedYesCount: number = stakeholders.filter(stakeholder => stakeholder.contacted === 'YES').length;
 
             // Count of stakeholders with contacted equal to 'NO'
-            const contactedNoCount: number = stakeholders.filter(stakeholder => stakeholder.contacted === 'NO').length;
+            const contactedNoCount: number = stakeholders.filter(stakeholder => stakeholder.contacted !== 'YES').length;
 
             // Count of stakeholders with attempted contact
             const attemptedContactCount: number = stakeholders.filter(stakeholder => stakeholder.attempts !== '').length;
@@ -189,6 +205,79 @@ class StakeholderController {
             res.status(500).json({error: 'Failed to fetch stakeholders'});
         }
     }
+
+    async getAllLocations(req: Request, res: Response): Promise<void> {
+        const projectId: number = parseInt(req.params.projectId, 10);
+
+        try {
+            const stakeholders: Stakeholder[] = await this.stakeholderService.getStakeholdersByProjectId(projectId);
+
+            const provinceList: string[] = [];
+            const locationList: LocationData[] = [];
+            let missing = 0;
+
+            for (const stakeholder of stakeholders) {
+                const { mailingAddress, streetAddress } = stakeholder;
+
+                if (!mailingAddress && !streetAddress) {
+                    missing++;
+                } else if (mailingAddress.split(',').length < 3) {
+                    missing++;
+                }
+            }
+
+            locationList.push({ locations: [{ province: 'MISSING', count: missing, cities: [] }] });
+
+            for (const stakeholder of stakeholders) {
+                const { mailingAddress } = stakeholder;
+
+                if (mailingAddress) {
+                    const location = mailingAddress.split(',');
+                    if (location.length > 2 && !provinceList.includes(location[location.length - 2])) {
+                        provinceList.push(location[location.length - 2]);
+                    }
+                }
+            }
+
+            for (const province of provinceList) {
+                const cityList: { name: string; count: number }[] = [];
+                let provinceCount = 0;
+
+                for (const stakeholder of stakeholders) {
+                    const { mailingAddress } = stakeholder;
+
+                    if (mailingAddress) {
+                        const location = mailingAddress.split(',');
+                        const city = location[location.length - 3];
+                        const stakeholderProvince = location[location.length - 2];
+
+                        if (stakeholderProvince === province) {
+                            provinceCount++;
+                            let cityCount = 0;
+
+                            if (!cityList.some((cityObj) => cityObj.name === city)) {
+                                for (const tmpStakeholder of stakeholders) {
+                                    const tmpLocation = tmpStakeholder.mailingAddress.split(',');
+                                    if (city === tmpLocation[tmpLocation.length - 3]) {
+                                        cityCount++;
+                                    }
+                                }
+                                cityList.push({ name: city, count: cityCount });
+                            }
+                        }
+                    }
+                }
+
+                locationList.push({ locations: [{ province, count: provinceCount, cities: cityList }] });
+            }
+
+            res.json(locationList);
+        } catch (error) {
+            console.error('Error fetching stakeholders:', error);
+            res.status(500).json({ error: 'Failed to fetch stakeholders' });
+        }
+    }
+
 }
 
 export default StakeholderController;

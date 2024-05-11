@@ -173,6 +173,30 @@ export class ItemController {
         }
     }
 
+    // Update package item quantity
+    async updatePackageItemQuantity(req: Request, res: Response): Promise<void> {
+        try {
+            const { id } = req.params;
+            const { quantity } = req.body;
+            const packageItemId: number = Number(id);
+
+            // Update package item quantity
+            await this.itemService.updatePackageItemQuantity(packageItemId, quantity);
+
+            // If quantity is 0, delete the package item
+            if (quantity === 0) {
+                await this.itemService.deletePackageItem(packageItemId);
+                res.status(200).json({ message: `Package item with ID ${packageItemId} deleted successfully` });
+            } else {
+                res.status(200).json({ message: 'Package item quantity updated successfully' });
+            }
+        } catch (error) {
+            console.error('Error updating package item quantity:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+
+
     // Get package items by Project Id
     async getPackageItemsByProjectId(req: Request, res: Response): Promise<void> {
         try {

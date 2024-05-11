@@ -33,8 +33,8 @@ class UserService {
                 throw new Error('Incorrect password');
             }
 
-            const token = this.generateAccessToken(user);
-            const refreshToken = jwt.sign({user}, 'secret', {expiresIn: '8hr'});
+            const token: string = this.generateAccessToken(user);
+            const refreshToken: string = jwt.sign({user}, 'secret', {expiresIn: '8hr'});
 
             console.log(`${user.username} successfully logged in`);
 
@@ -127,7 +127,7 @@ class UserService {
     // Generate an access token
     private generateAccessToken(user: any): string {
         const secretKey = 'secret';
-        const expiresIn = '15s';
+        const expiresIn = '15min';
 
         return jwt.sign(
             {

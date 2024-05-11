@@ -1,12 +1,18 @@
 import { Request, Response } from 'express';
 import ProjectService from '../services/project.service';
-import { ProjectInputDTO } from '../dtos/project.dto';
+import {EditProjectInputDTO, ProjectInputDTO} from '../dtos/project.dto';
+import fs from "fs";
+import path from 'path';
+import {Item} from "@prisma/client";
+import {ItemService} from "../services/item.service";
 
 class ProjectController {
     private projectService: ProjectService;
+    private itemService: ItemService;
 
     constructor() {
         this.projectService = new ProjectService();
+        this.itemService = new ItemService();
     }
 
     // Create a new project
@@ -32,6 +38,46 @@ class ProjectController {
             res.status(201).json({ message: result });
         } catch (error) {
             console.error('Error creating Project Record:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    };
+
+    // Delete a project
+    deleteProject = async (req: Request, res: Response): Promise<void> => {
+        const projectId: number = parseInt(req.params.projectId, 10);
+
+        try {
+            // Fetch items associated with the project
+            const items: Item[] = await this.itemService.getItemsByProjectId(projectId);
+
+            // Iterate through items and delete images
+            for (const item of items) {
+                if (item.image) {
+                    const imagePath: string = path.join('uploads', item.image);
+                    fs.unlinkSync(imagePath);
+                }
+            }
+
+            // Delete the project
+            await this.projectService.deleteProject(projectId);
+
+            res.json({ message: 'Project deleted successfully' });
+        } catch (error) {
+            console.error('Error deleting project:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+
+    editProject = async (req: Request, res: Response): Promise<void> => {
+        const projectId: number = parseInt(req.params.projectId, 10);
+        const projectData: EditProjectInputDTO = req.body;
+
+        try {
+            // Your existing logic for updating the project
+            await this.projectService.editProject(projectId, projectData);
+            res.json({ message: 'Project updated successfully' });
+        } catch (error) {
+            console.error('Error updating project:', error);
             res.status(500).json({ error: 'Internal Server Error' });
         }
     };

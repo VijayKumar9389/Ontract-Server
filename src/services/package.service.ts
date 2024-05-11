@@ -96,6 +96,14 @@ class PackageService {
         });
     }
 
+    // update package type
+    async updatePackageType(packageTypeId: number, packageTypeDTO: PackageTypeDTO): Promise<PackageType> {
+        return this.prisma.packageType.update({
+            where: {id: packageTypeId},
+            data: packageTypeDTO,
+        });
+    }
+
     // Change the package type for a package
     async changePackagePackageType(packageId: number, packageTypeId: number): Promise<Package> {
         return this.prisma.package.update({
@@ -193,31 +201,33 @@ class PackageService {
         }
     }
 
-    // Delete package type and all associated items
     async deletePackageType(id: number): Promise<void> {
         try {
             const packageType = await this.prisma.packageType.findUnique({
-                where: {
-                    id: id,
-                },
-                include: {
-                    items: true,
-                },
+                where: { id },
+                include: { items: true },
             });
 
             if (!packageType) {
                 throw new Error('Package type not found');
             }
 
-            if (packageType.items.length > 0) {
-                throw new Error('Package type is associated with package items. Cannot delete.');
+            // Check if any deliveries are associated with packages of this package type
+            const deliveriesWithPackageType = await this.prisma.delivery.findFirst({
+                where: { packages: { some: { packageTypeId: id } } },
+            });
+
+            if (deliveriesWithPackageType) {
+                throw new Error('Cannot delete package type. Deliveries are associated with packages of this type.');
             }
 
-            await this.prisma.packageType.delete({
-                where: {
-                    id: id,
-                },
+            // Delete associated PackageItems first
+            await this.prisma.packageItem.deleteMany({
+                where: { packageTypeId: id },
             });
+
+            // Now delete the package type
+            await this.prisma.packageType.delete({ where: { id } });
 
         } catch (error) {
             console.error('Error deleting package type and associated items:', error);

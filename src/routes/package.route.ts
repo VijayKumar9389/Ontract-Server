@@ -9,6 +9,10 @@ router.post('/create/packagetype/:projectId', (req: Request, res: Response) =>
     packageController.createPackageType(req, res)
 );
 
+router.put('/update/packagetype/:packageTypeId', (req: Request, res: Response) =>
+    packageController.updatePackageType(req, res)
+);
+
 // Delete packageType by id
 router.get('/get/packagetype/:projectId', (_req: Request, res: Response) =>
     packageController.getAllPackageTypes(_req, res)

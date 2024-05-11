@@ -13,7 +13,7 @@ export class StakeholderService {
     async updateStakeholderById(stakeholderId: number, updatedData: StakeholderUpdateDTO): Promise<Stakeholder | null> {
         try {
             return await this.prisma.stakeholder.update({
-                where: { id: stakeholderId },
+                where: {id: stakeholderId},
                 data: updatedData,
             });
         } catch (error) {
@@ -22,14 +22,16 @@ export class StakeholderService {
         }
     }
 
-    // Fetch all stakeholders by project ID including tractRecords
     async getStakeholdersByProjectId(projectId: number): Promise<StakeholderWithTractRecords[]> {
         try {
-            // Fetch stakeholders with tract records by project ID
+            // Fetch stakeholders with tract records by project ID and order by stakeholder ID
             return await this.prisma.stakeholder.findMany({
-                where: { projectId },
+                where: {projectId},
                 include: {
                     tractRecords: true,
+                },
+                orderBy: {
+                    id: 'asc', // You can use 'desc' for descending order
                 },
             });
         } catch (error) {
@@ -38,13 +40,18 @@ export class StakeholderService {
         }
     }
 
-    // Fetch a stakeholder by ID including tractRecords
+
+// Fetch a stakeholder by ID including tractRecords ordered by id
     async getStakeholderById(stakeholderId: number): Promise<StakeholderWithTractRecords | null> {
         try {
             return await this.prisma.stakeholder.findUnique({
-                where: { id: stakeholderId },
+                where: {id: stakeholderId},
                 include: {
-                    tractRecords: true, // Include the tractRecords relationship
+                    tractRecords: {
+                        orderBy: {
+                            id: 'asc', // Order tractRecords by id in ascending order
+                        },
+                    },
                 },
             });
         } catch (error) {

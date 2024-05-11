@@ -11,31 +11,32 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
 });
 
 // Register
-router.post('/register', async (req: Request, res: Response): Promise<void> => {
+router.post('/register', validateToken(false), async (req: Request, res: Response): Promise<void> => {
     await userController.register(req, res);
 });
 
 //Edit User
-router.post('/edit', async (req: Request, res: Response): Promise<void> => {
+router.post('/edit', validateToken(false), async (req: Request, res: Response): Promise<void> => {
     await userController.editUser(req, res);
 });
 
 // Get all users
-router.get('/getAll', async (req: Request, res: Response): Promise<void> => {
+router.get('/getAll', validateToken(false), async (req: Request, res: Response): Promise<void> => {
     await userController.getUsers(req, res);
 });
 
 // Refresh Token
-router.post('/refresh-token', async (req: Request, res: Response): Promise<void> => {
+router.post('/refresh-token', validateToken(false), async (req: Request, res: Response): Promise<void> => {
     await userController.refreshAccessToken(req, res);
 });
 
-router.post('/verify-token', async (req: Request, res: Response): Promise<void> => {
+// Verify Token
+router.post('/verify-token', validateToken(false), async (req: Request, res: Response): Promise<void> => {
     await userController.verifySession(req, res);
 });
 
 // Example route requiring admin access
-router.get('/admin-status', async (req: Request, res: Response): Promise<void> => {
+router.get('/admin-status', validateToken(false), async (req: Request, res: Response): Promise<void> => {
     await userController.verifyAdminStatus(req, res);
 });
 

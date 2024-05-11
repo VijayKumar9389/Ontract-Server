@@ -1,5 +1,6 @@
 import express, { Request, Response, Router } from 'express';
 import { DeliveryController } from '../controllers/delivery.controller';
+import validateToken from "../middleware/auth";
 
 const router: Router = express.Router();
 const deliveryController: DeliveryController = new DeliveryController();

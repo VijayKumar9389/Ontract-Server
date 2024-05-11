@@ -27,11 +27,11 @@ export class ItemService {
         }
     }
 
-// Service method to update an item
+    // Service method to update an item
     async updateItem(itemId: number, itemData: Item): Promise<Item> {
         try {
             const updatedItem: Item = await this.prisma.item.update({
-                where: { id: itemId },
+                where: {id: itemId},
                 data: {
                     ...itemData,
                 },
@@ -45,15 +45,15 @@ export class ItemService {
 
     getItemById(itemId: number): Promise<Item | null> {
         return this.prisma.item.findUnique({
-            where: { id: itemId },
+            where: {id: itemId},
         });
     }
 
     // Get Package Items by Item ID
     getItemWithPackageItems(itemId: number): Promise<Item | null> {
         return this.prisma.item.findUnique({
-            where: { id: itemId },
-            include: { packageItems: true },
+            where: {id: itemId},
+            include: {packageItems: true},
         });
     }
 
@@ -73,8 +73,8 @@ export class ItemService {
         try {
             // Retrieve the item from the database along with its associated packageItems
             const item = await this.prisma.item.findUnique({
-                where: { id: itemId },
-                include: { packageItems: true },
+                where: {id: itemId},
+                include: {packageItems: true},
             });
 
             // Check if the item exists
@@ -89,7 +89,7 @@ export class ItemService {
 
             // Delete the item from the database
             await this.prisma.item.delete({
-                where: { id: itemId },
+                where: {id: itemId},
             });
 
             // Remove the associated image file from the file system
@@ -119,9 +119,23 @@ export class ItemService {
     // Create a new package item
     async createPackageItem(itemID: number, packageTypeID: number): Promise<PackageItem> {
         try {
-            const itemId: number = 1; // Assuming you get the item ID as a number
+            // Check if a PackageItem with the same itemID and packageTypeID already exists
+            const existingPackageItem = await this.prisma.packageItem.findFirst({
+                where: {
+                    itemId: itemID,
+                    packageTypeId: packageTypeID
+                }
+            });
+
+            if (existingPackageItem) {
+                // If a PackageItem already exists for this combination, throw an error or handle it as needed
+                throw new Error('PackageItem already exists for this Item and PackageType combination');
+            }
+
+            // Create the new PackageItem
             return await this.prisma.packageItem.create({
                 data: {
+                    quantity: 1,
                     packageType: {
                         connect: {
                             id: packageTypeID
@@ -141,8 +155,6 @@ export class ItemService {
         }
     }
 
-    // Update an item by its ID
-
     // Delete a package item by its ID
     async deletePackageItem(packageItemId: number): Promise<void> {
         try {
@@ -155,6 +167,33 @@ export class ItemService {
         } catch (error) {
             console.error('Error deleting Package Item:', error);
             throw new Error('Failed to delete Package Item');
+        }
+    }
+
+    // Update the quantity of a package item
+    async updatePackageItemQuantity(packageItemId: number, quantity: number): Promise<void> {
+        try {
+            await this.prisma.packageItem.update({
+                where: {id: packageItemId},
+                data: {quantity: quantity},
+            });
+        } catch (error) {
+            console.error('Error updating package item quantity:', error);
+            throw new Error('Failed to update package item quantity');
+        }
+    }
+
+    async getItemsByProjectId(projectId: number): Promise<Item[]> {
+        try {
+            const items = await this.prisma.item.findMany({
+                where: {
+                    projectId: projectId,
+                },
+            });
+            return items;
+        } catch (error) {
+            console.error('Error fetching items:', error);
+            throw new Error('Failed to fetch items');
         }
     }
 

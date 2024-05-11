@@ -6,6 +6,7 @@ import {
     ProjectRecordInputDTO,
 } from '../dtos/project.dto';
 import { mapProjectRecordToStakeholderInput, mapProjectRecordToTractRecordInput } from '../utils/mapFunctions';
+import {EditProjectInputDTO} from "../dtos/project.dto";
 
 class ProjectService {
     private prisma: PrismaClient;
@@ -43,7 +44,38 @@ class ProjectService {
         }
     }
 
+    async editProject(projectId: number, project: EditProjectInputDTO): Promise<void> {
+        try {
+            await this.prisma.project.update({
+                where: {
+                    id: projectId,
+                },
+                data: {
+                    name: project.name,
+                    year: project.year,
+                    notes: project.notes,
+                    surveyLink: project.surveyLink,
+                },
+            });
+        } catch (error) {
+            console.error('Error updating project:', error);
+            throw new Error('Internal Server Error');
+        }
+    }
 
+
+    async deleteProject(projectId: number): Promise<void> {
+        try {
+            await this.prisma.project.delete({
+                where: {
+                    id: projectId,
+                },
+            });
+        } catch (error) {
+            console.error('Error deleting project:', error);
+            throw new Error('Internal Server Error');
+        }
+    }
 
     // Get all projects
     async getProjectWithDetails(projectId: number): Promise<Project | null> {

@@ -28,6 +28,10 @@ router.get('/getStakeholdersContactSummaryByProjectId/:projectId', (req: Request
     stakeholderController.getStakeholdersContactSummaryByProjectId(req, res)
 );
 
+router.get('/getLocations/:projectId', (req: Request, res: Response) =>
+    stakeholderController.getAllLocations(req, res)
+);
+
 router.get('/getStakeholdersByProjectId/:projectId', validateToken(false), (req: Request, res: Response) =>
     stakeholderController.getStakeholdersByProjectId(req, res)
 );

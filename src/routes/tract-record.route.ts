@@ -15,4 +15,9 @@ router.put('/update/:id', async (req, res) => {
     await tractRecordController.updateTractRecord(req, res);
 });
 
+// Define the route to get tract records by project ID
+router.get('/get/:projectId', async (req, res) => {
+    await tractRecordController.getTractRecordByProjectId(req, res);
+});
+
 export default router;

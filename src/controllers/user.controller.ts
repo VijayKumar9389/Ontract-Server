@@ -81,7 +81,6 @@ class UserController {
     // Method to refresh the access token
     async refreshAccessToken(req: Request, res: Response): Promise<void> {
         const refreshToken = req.cookies.refreshToken;
-
         try {
             if (!refreshToken) {
                 res.status(401).json({ error: 'No refresh token provided' });
@@ -121,7 +120,6 @@ class UserController {
     // Method to verify user session using refresh token
     async verifySession(req: Request, res: Response): Promise<void> {
         const refreshToken = req.cookies.refreshToken;
-
         try {
             if (!refreshToken) {
                 res.status(401).json({ auth: false });
@@ -154,7 +152,6 @@ class UserController {
 
     async verifyAdminStatus(req: Request, res: Response): Promise<void> {
         const refreshToken = req.cookies.refreshToken;
-
         try {
             if (!refreshToken) {
                 res.status(401).json({ auth: false });

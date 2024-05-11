@@ -1,6 +1,7 @@
 // tract-record.service.ts
 import { PrismaClient, Stakeholder } from '@prisma/client';
 import {TractFormUpdateDTO} from "../dtos/tract-record.dto";
+import {StakeholderWithTractRecords} from "../dtos/stakeholder.dto";
 
 class TractRecordService {
     private prisma: PrismaClient;
@@ -53,6 +54,23 @@ class TractRecordService {
                             },
                         },
                     },
+                },
+            });
+        } catch (error) {
+            console.error('Error fetching stakeholders:', error);
+            throw new Error('Failed to fetch stakeholders');
+        }
+    }
+
+    // Fetch stakeholders with tract records by project ID
+    async getTractRecordsByProjectWithStakeholders(projectId: number): Promise<StakeholderWithTractRecords[]> {
+        try {
+            return await this.prisma.stakeholder.findMany({
+                where: {
+                    projectId,
+                },
+                include: {
+                    tractRecords: true,
                 },
             });
         } catch (error) {

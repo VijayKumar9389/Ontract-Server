@@ -49,4 +49,8 @@ router.delete('/packageItem/delete/:id', (req: Request, res: Response) =>
 );
 
 
+router.put('/packageItem/update/:id', (req: Request, res: Response) =>
+    itemController.updatePackageItemQuantity(req, res)
+);
+
 export default router;

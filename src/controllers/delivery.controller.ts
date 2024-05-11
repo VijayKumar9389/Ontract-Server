@@ -92,17 +92,22 @@ export class DeliveryController {
 
     // Get deliveries report
     async getDeliveriesReport(req: Request, res: Response): Promise<void> {
+        const projectId: number = parseInt(req.params.projectId, 10);
         try {
             // Get all deliveries for a project
-            const deliveriesReport: DeliveryWithNestedObjects[] = await this.deliveryService.getDeliveriesByProjectId(1);
+            const deliveriesReport: DeliveryWithNestedObjects[] = await this.deliveryService.getDeliveriesByProjectId(projectId);
 
             // Count of deliveries in report
             const count: number = deliveriesReport.length;
 
             // Count of stakeholders
-            const stakeholderCount = deliveriesReport.reduce((acc, delivery) => {
-                return acc + (delivery.packages ? delivery.packages.length : 0);
+            const stakeholderCount = deliveriesReport.reduce((totalStakeholders, delivery) => {
+                // For each delivery in the deliveriesReport array,
+                // if there are packages in the delivery, add the count of packages to the total count of stakeholders.
+                // If there are no packages, add 0 to the total count of stakeholders.
+                return totalStakeholders + (delivery.packages ? delivery.packages.length : 0);
             }, 0);
+
 
             // Count of each package type
             const packageTypeCountMap: Record<string, number> = {};
@@ -128,8 +133,11 @@ export class DeliveryController {
             });
 
             // Count of deliveries with status "pending" or "completed"
-            const pendingDeliveryCount = deliveriesReport.filter((delivery) => delivery.completed).length;
+            const pendingDeliveryCount = deliveriesReport.filter((delivery) => !delivery.completed).length;
             const completedDeliveryCount = deliveriesReport.filter((delivery) => delivery.completed).length;
+            const deliveryCount = deliveriesReport.filter((delivery) => delivery.delivery_method === 'person').length
+            const mailCount = deliveriesReport.filter((delivery) => delivery.delivery_method === 'mail').length
+
 
             // Return the report
             res.status(200).json({
@@ -139,10 +147,12 @@ export class DeliveryController {
                 deliveryRouteCountMap,
                 pendingDeliveryCount,
                 completedDeliveryCount,
+                deliveryCount,
+                mailCount
             });
         } catch (error) {
             console.error('Error in getDeliveriesReport:', error);
-            res.status(500).json({ error: 'Internal Server Error' });
+            res.status(500).json({error: 'Internal Server Error'});
         }
     }
 
