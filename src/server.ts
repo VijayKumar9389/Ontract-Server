@@ -5,13 +5,13 @@ import dotenv from 'dotenv';
 import cookieParser from "cookie-parser";
 import validateToken from "./middleware/auth";
 
-import userRoutes from "./routes/user.route";
-import projectRoutes from "./routes/project.route";
-import packageRoute from "./routes/package.route";
-import deliveryRoute from "./routes/delivery.route";
-import itemRoutes from "./routes/item.route";
-import stakeholderRoutes from "./routes/stakeholder.route";
-import tractRecordRoute from "./routes/tract-record.route";
+// import userRoutes from "./routes/user.route";
+// import projectRoutes from "./routes/project.route";
+// import packageRoute from "./routes/package.route";
+// import deliveryRoute from "./routes/delivery.route";
+// import itemRoutes from "./routes/item.route";
+// import stakeholderRoutes from "./routes/stakeholder.route";
+// import tractRecordRoute from "./routes/tract-record.route";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -47,13 +47,13 @@ app.get('/images/:name', (req: Request, res: Response): void => {
 });
 
 // api routes
-app.use('/user', userRoutes);
-app.use('/project', validateToken(false), projectRoutes);
-app.use('/delivery',  validateToken(false), deliveryRoute);
-app.use('/package', validateToken(false), packageRoute);
-app.use('/item', validateToken(false), itemRoutes);
-app.use('/stakeholder', validateToken(false), stakeholderRoutes);
-app.use('/tract-record', validateToken(false),  tractRecordRoute);
+// app.use('/user', userRoutes);
+// app.use('/project', validateToken(false), projectRoutes);
+// app.use('/delivery',  validateToken(false), deliveryRoute);
+// app.use('/package', validateToken(false), packageRoute);
+// app.use('/item', validateToken(false), itemRoutes);
+// app.use('/stakeholder', validateToken(false), stakeholderRoutes);
+// app.use('/tract-record', validateToken(false),  tractRecordRoute);
 
 // start the express server
 app.listen(port, (): void => {
