@@ -6,9 +6,6 @@ dist/
 build/
 uploads/
 
-# Ignore generated Prisma files
-/prisma/
-
 # Ignore environment files
 .env
 
