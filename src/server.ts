@@ -4,7 +4,6 @@ import path from "path";
 import dotenv from 'dotenv';
 import cookieParser from "cookie-parser";
 import validateToken from "./middleware/auth";
-
 import userRoutes from "./routes/user.route";
 import projectRoutes from "./routes/project.route";
 import packageRoute from "./routes/package.route";
