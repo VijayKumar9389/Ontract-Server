@@ -1,0 +1,122 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x"]
+  output        = "./prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int     @id @unique @default(autoincrement())
+  isAdmin  Boolean @default(false)
+  username String  @unique
+  password String
+}
+
+model Project {
+  id           Int           @id @unique @default(autoincrement())
+  name         String
+  year         Int
+  notes        String
+  surveyLink   String
+  stakeholders Stakeholder[] @relation("StakeholderToProject")
+  deliveries   Delivery[]    @relation("DeliveryToProject")
+  items        Item[]        @relation("ItemToProject")
+  PackageType  PackageType[]
+}
+
+model Stakeholder {
+  id                  Int           @id @unique @default(autoincrement())
+  name                String
+  streetAddress       String
+  mailingAddress      String
+  phoneNumber         String
+  isPerson            String
+  stakeholderComments String
+  stakeholderStatus   String
+  contacted           String
+  consultation        String
+  attempts            String
+  email               String
+  followUp            String
+  projectId           Int
+  projects            Project       @relation("StakeholderToProject", fields: [projectId], references: [id], onDelete: Cascade) // Added this relation
+  tractRecords        TractRecord[]
+  package             Package?      @relation("StakeholdertoPackage")
+  packageId           Int?          @unique
+}
+
+model TractRecord {
+  id             Int         @id @unique @default(autoincrement())
+  tract          Int
+  position       Int
+  pin            String
+  interest       String
+  structure      String
+  occupants      Int
+  worksLand      String
+  tractComments  String
+  pipelineStatus String
+  commodity      String
+  pageNumber     String
+  keepdelete     String
+  stakeholderId  Int
+  stakeholder    Stakeholder @relation(fields: [stakeholderId], references: [id], onDelete: Cascade)
+}
+
+model Delivery {
+  id              Int       @id @unique @default(autoincrement())
+  date            String?
+  delivery_method String
+  carrier         String?
+  route           String
+  destination     String
+  completed       Boolean
+  notes           String
+  projectId       Int
+  project         Project   @relation(name: "DeliveryToProject", fields: [projectId], references: [id], onDelete: Cascade)
+  packages        Package[] @relation("DeliveryToPackage")
+}
+
+model Package {
+  id            Int          @id @unique @default(autoincrement())
+  packageType   PackageType? @relation(name: "PackageToType", fields: [packageTypeId], references: [id], onDelete: Cascade)
+  packageTypeId Int?
+  delivery      Delivery     @relation(name: "DeliveryToPackage", fields: [deliveryId], references: [id], onDelete: Cascade)
+  deliveryId    Int
+  stakeholder   Stakeholder  @relation(name: "StakeholdertoPackage", fields: [stakeholderId], references: [id], onDelete: Cascade)
+  stakeholderId Int          @unique
+}
+
+model PackageType {
+  id        Int           @id @unique @default(autoincrement())
+  name      String
+  notes     String
+  projectId Int
+  project   Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  packages  Package[]     @relation("PackageToType")
+  items     PackageItem[]
+}
+
+model PackageItem {
+  id            Int         @id @unique @default(autoincrement())
+  packageType   PackageType @relation(fields: [packageTypeId], references: [id], onDelete: Cascade)
+  packageTypeId Int
+  quantity      Int
+  item          Item        @relation(name: "PackageItemToItem", fields: [itemId], references: [id], onDelete: Cascade)
+  itemId        Int
+}
+
+model Item {
+  id           Int           @id @unique @default(autoincrement())
+  name         String
+  description  String
+  image        String
+  quantity     Int
+  projectId    Int
+  project      Project       @relation(name: "ItemToProject", fields: [projectId], references: [id], onDelete: Cascade)
+  packageItems PackageItem[] @relation("PackageItemToItem")
+}
