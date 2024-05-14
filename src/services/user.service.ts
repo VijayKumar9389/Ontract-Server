@@ -125,7 +125,7 @@ class UserService {
     }
 
     // Generate an access token
-    private generateAccessToken(user: any): string {
+    private generateAccessToken(user: User): string {
         const secretKey = 'secret';
         const expiresIn = '15min';
 
