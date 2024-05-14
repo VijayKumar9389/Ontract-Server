@@ -5,6 +5,7 @@ node_modules/
 dist/
 build/
 uploads/
+prisma-client/
 
 # Ignore environment files
 .env

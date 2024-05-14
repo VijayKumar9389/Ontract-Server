@@ -1,5 +1,5 @@
 // tract-record.service.ts
-import { PrismaClient, Stakeholder } from '@prisma/client';
+import { PrismaClient, Stakeholder } from '../../prisma-client';
 import {TractFormUpdateDTO} from "../dtos/tract-record.dto";
 import {StakeholderWithTractRecords} from "../dtos/stakeholder.dto";
 

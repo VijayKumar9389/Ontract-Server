@@ -1,4 +1,4 @@
-import {PrismaClient, Item, PackageItem} from '@prisma/client';
+import {PrismaClient, Item, PackageItem} from '../../prisma-client';
 import {CreateItemDTO, CreatePackageItemDTO, UpdateItemDTO} from '../dtos/item.dto';
 import path from 'path';
 import fs from 'fs';
