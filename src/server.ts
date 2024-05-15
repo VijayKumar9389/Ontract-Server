@@ -17,7 +17,7 @@ dotenv.config();
 
 // Create a new express application instance
 const app: Express = express();
-const port: number = parseInt(process.env.PORT || '3005', 10);
+const port: number = parseInt(process.env.PORT || '8080', 10);
 
 // enable cors
 app.use(cors({
