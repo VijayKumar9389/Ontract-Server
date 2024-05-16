@@ -1,4 +1,4 @@
-import { PrismaClient, Project, Stakeholder } from '../../prisma-client';
+import { PrismaClient, Project, Stakeholder } from '@prisma/client';
 import {
     ProjectInputDTO,
     StakeholderInputDTO,

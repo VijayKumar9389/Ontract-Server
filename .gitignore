@@ -2,10 +2,7 @@
 node_modules/
 
 # Ignore build output
-dist/
-build/
 uploads/
-prisma-client/
 
 # Ignore environment files
 .env

@@ -1,4 +1,4 @@
-import {Stakeholder, TractRecord} from "../../prisma-client";
+import {Stakeholder, TractRecord} from '@prisma/client';
 
 export interface StakeholderWithTractRecords extends Stakeholder {
     tractRecords: TractRecord[];

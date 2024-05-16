@@ -1,5 +1,5 @@
 import {CreateDeliveryDTO, PackageTypeDTO} from '../dtos/delivery.dto';
-import {PrismaClient, Package, PackageType} from '../../prisma-client';
+import {PrismaClient, Package, PackageType} from '@prisma/client';
 import {StakeholderService} from './stakeholder.service';
 
 class PackageService {

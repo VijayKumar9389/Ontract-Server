@@ -1,8 +1,6 @@
-// delivery.service.ts
-import {PrismaClient, Delivery, Package} from '../../prisma-client';
+import {PrismaClient, Delivery, Package} from '@prisma/client';
 import {CreateDeliveryDTO, DeliveryWithNestedObjects} from '../dtos/delivery.dto';
 import PackageService from './package.service';
-import {StakeholderService} from "./stakeholder.service";
 
 // Edit delivery details
 export interface EditDeliveryDTO {

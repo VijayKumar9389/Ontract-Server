@@ -1,4 +1,4 @@
-import {PrismaClient, Stakeholder, TractRecord} from "../../prisma-client";
+import {PrismaClient, Stakeholder, TractRecord} from '@prisma/client';
 import {StakeholderUpdateDTO} from "../dtos/stakeholder.dto";
 import {StakeholderWithTractRecords} from "../dtos/stakeholder.dto";
 

@@ -1,4 +1,4 @@
-import {Delivery, Item, Package, PackageType, Stakeholder} from "../../prisma-client";
+import {Delivery, Item, Package, PackageType, Stakeholder} from '@prisma/client';
 
 // Create a new delivery
 export interface CreateDeliveryDTO {
