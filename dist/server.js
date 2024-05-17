@@ -1,4 +1,13 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -16,6 +25,9 @@ const delivery_route_1 = __importDefault(require("./routes/delivery.route"));
 const item_route_1 = __importDefault(require("./routes/item.route"));
 const stakeholder_route_1 = __importDefault(require("./routes/stakeholder.route"));
 const tract_record_route_1 = __importDefault(require("./routes/tract-record.route"));
+const client_1 = require("@prisma/client");
+// Initialize Prisma
+const prisma = new client_1.PrismaClient();
 // Load environment variables from .env file
 dotenv_1.default.config();
 // Create a new express application instance
@@ -43,6 +55,16 @@ app.get('/images/:name', (req, res) => {
     const imagePath = path_1.default.join(__dirname, `../uploads/${name}`);
     res.sendFile(imagePath);
 });
+// Route to check Prisma connection
+app.get('/check-prisma', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        yield prisma.$queryRaw `SELECT 1`;
+        res.status(200).send('Prisma connection is successful!');
+    }
+    catch (error) {
+        res.status(500).send('Failed to connect to Prisma');
+    }
+}));
 // api routes
 app.use('/user', user_route_1.default);
 app.use('/project', (0, auth_1.default)(false), project_route_1.default);

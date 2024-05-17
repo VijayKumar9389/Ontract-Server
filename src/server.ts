@@ -11,6 +11,10 @@ import deliveryRoute from "./routes/delivery.route";
 import itemRoutes from "./routes/item.route";
 import stakeholderRoutes from "./routes/stakeholder.route";
 import tractRecordRoute from "./routes/tract-record.route";
+import { PrismaClient } from '@prisma/client';
+
+// Initialize Prisma
+const prisma = new PrismaClient();
 
 // Load environment variables from .env file
 dotenv.config();
@@ -43,6 +47,16 @@ app.get('/images/:name', (req: Request, res: Response): void => {
     const { name } = req.params;
     const imagePath: string = path.join(__dirname, `../uploads/${name}`);
     res.sendFile(imagePath);
+});
+
+// Route to check Prisma connection
+app.get('/check-prisma', async (req: Request, res: Response): Promise<void> => {
+    try {
+        await prisma.$queryRaw`SELECT 1`;
+        res.status(200).send('Prisma connection is successful!');
+    } catch (error) {
+        res.status(500).send('Failed to connect to Prisma');
+    }
 });
 
 // api routes
