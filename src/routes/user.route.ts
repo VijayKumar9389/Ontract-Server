@@ -21,7 +21,7 @@ router.post('/edit', validateToken(false), async (req: Request, res: Response): 
 });
 
 // Get all users
-router.get('/getAll', validateToken(false), async (req: Request, res: Response): Promise<void> => {
+router.get('/getAll', async (req: Request, res: Response): Promise<void> => {
     await userController.getUsers(req, res);
 });
 
