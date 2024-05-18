@@ -55,14 +55,14 @@ class UserController {
                     httpOnly: true,
                     secure: isProduction /* set to true in production */,
                     sameSite: 'strict',
-                    domain: isProduction ? process.env.ORIGIN : 'localhost',
+                    domain: isProduction ? 'main.d3npwpotwjs8s0.amplifyapp.com' : 'localhost',
                 });
                 // Set HTTP-only cookies
                 res.cookie('refreshToken', result.refreshToken, {
                     httpOnly: true,
                     secure: isProduction /* set to true in production */,
                     sameSite: 'strict',
-                    domain: isProduction ? process.env.ORIGIN : 'localhost',
+                    domain: isProduction ? 'main.d3npwpotwjs8s0.amplifyapp.com' : 'localhost',
                 });
                 res.status(200).json({ auth: true, user: result.user });
             }
