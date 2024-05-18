@@ -30,7 +30,7 @@ router.post('/edit', (0, auth_1.default)(false), (req, res) => __awaiter(void 0,
     yield userController.editUser(req, res);
 }));
 // Get all users
-router.get('/getAll', (0, auth_1.default)(false), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/getAll', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     yield userController.getUsers(req, res);
 }));
 // Refresh Token

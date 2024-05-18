@@ -49,19 +49,20 @@ class UserController {
             try {
                 // Call the login method from the user service
                 const result = yield this.userService.login(username, password);
+                const isProduction = process.env.NODE_ENV === 'production';
                 // Set HTTP-only cookies
                 res.cookie('accessToken', result.accessToken, {
                     httpOnly: true,
-                    secure: false /* set to true in production */,
+                    secure: isProduction /* set to true in production */,
                     sameSite: 'strict',
-                    domain: 'localhost',
+                    domain: isProduction ? process.env.ORIGIN : 'localhost',
                 });
                 // Set HTTP-only cookies
                 res.cookie('refreshToken', result.refreshToken, {
                     httpOnly: true,
-                    secure: false /* set to true in production */,
+                    secure: isProduction /* set to true in production */,
                     sameSite: 'strict',
-                    domain: 'localhost',
+                    domain: isProduction ? process.env.ORIGIN : 'localhost',
                 });
                 res.status(200).json({ auth: true, user: result.user });
             }
