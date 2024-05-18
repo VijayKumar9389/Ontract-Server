@@ -19,15 +19,13 @@ class UserController {
         try {
             // Call the login method from the user service
             const result = await this.userService.login(username, password);
-
             const isProduction: boolean = process.env.NODE_ENV === 'production';
-            console.log('isProduction:', isProduction);
 
             // Set HTTP-only cookies
             res.cookie('accessToken', result.accessToken, {
                 httpOnly: true,
                 secure: isProduction,
-                sameSite: 'none',
+                sameSite: isProduction ? 'none' : 'lax',
                 domain: isProduction ? '.amplifyapp.com' : 'localhost',
                 path: '/',
             });
@@ -97,13 +95,16 @@ class UserController {
 
             // If verification is successful, refresh the access token
             const result = await this.userService.refreshAccessToken(refreshToken);
+            const isProduction: boolean = process.env.NODE_ENV === 'production';
 
-            // Set the new access token in cookies
+
+            // Set HTTP-only cookies
             res.cookie('accessToken', result.accessToken, {
                 httpOnly: true,
-                secure: false /* set to true in production */,
-                sameSite: 'strict',
-                domain: 'localhost',
+                secure: isProduction,
+                sameSite: isProduction ? 'none' : 'lax',
+                domain: isProduction ? '.amplifyapp.com' : 'localhost',
+                path: '/',
             });
 
             // Return the new access token and other details

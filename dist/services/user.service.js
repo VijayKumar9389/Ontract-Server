@@ -19,6 +19,7 @@ class UserService {
     constructor() {
         this.prisma = new client_1.PrismaClient();
     }
+    // Login a user
     login(username, password) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -51,6 +52,7 @@ class UserService {
     getUsers() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                // Fetch all users from the database
                 const users = yield this.prisma.user.findMany();
                 // Map the Prisma entities to UserOutputDTO, excluding the password
                 const usersDTO = users.map(user => ({
@@ -58,6 +60,7 @@ class UserService {
                     username: user.username,
                     isAdmin: user.isAdmin,
                 }));
+                // Return the DTO
                 return usersDTO;
             }
             catch (error) {

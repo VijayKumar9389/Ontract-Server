@@ -17,6 +17,7 @@ class UserService {
         this.prisma = new PrismaClient();
     }
 
+    // Login a user
     async login(username: string, password: string): Promise<TokenResponse> {
         try {
             const user = await this.prisma.user.findUnique({
@@ -52,14 +53,19 @@ class UserService {
     // Get all users
     async getUsers(): Promise<UserOutputDTO[]> {
         try {
+            // Fetch all users from the database
             const users = await this.prisma.user.findMany();
+
             // Map the Prisma entities to UserOutputDTO, excluding the password
             const usersDTO: UserOutputDTO[] = users.map(user => ({
                 id: user.id,
                 username: user.username,
                 isAdmin: user.isAdmin,
             }));
+
+            // Return the DTO
             return usersDTO;
+
         } catch (error: any) {
             throw new Error(error.message);
         }
