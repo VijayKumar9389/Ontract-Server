@@ -54,7 +54,7 @@ class UserController {
                 res.cookie('accessToken', result.accessToken, {
                     httpOnly: true,
                     secure: isProduction,
-                    sameSite: isProduction ? 'lax' : 'none',
+                    sameSite: isProduction ? 'strict' : 'none',
                     domain: isProduction ? '.amplifyapp.com' : 'localhost',
                     path: '/',
                 });
@@ -62,7 +62,7 @@ class UserController {
                 res.cookie('refreshToken', result.refreshToken, {
                     httpOnly: true,
                     secure: isProduction,
-                    sameSite: isProduction ? 'lax' : 'none',
+                    sameSite: isProduction ? 'strict' : 'none',
                     domain: isProduction ? '.amplifyapp.com' : 'localhost',
                     path: '/',
                 });
@@ -133,7 +133,7 @@ class UserController {
                 res.cookie('accessToken', result.accessToken, {
                     httpOnly: true,
                     secure: isProduction,
-                    sameSite: isProduction ? 'lax' : 'none',
+                    sameSite: isProduction ? 'strict' : 'none',
                     domain: isProduction ? '.amplifyapp.com' : 'localhost',
                     path: '/',
                 });
