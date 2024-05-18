@@ -50,19 +50,20 @@ class UserController {
                 // Call the login method from the user service
                 const result = yield this.userService.login(username, password);
                 const isProduction = process.env.NODE_ENV === 'production';
+                console.log('isProduction:', isProduction);
                 // Set HTTP-only cookies
                 res.cookie('accessToken', result.accessToken, {
                     httpOnly: true,
                     secure: isProduction /* set to true in production */,
                     sameSite: 'strict',
-                    domain: isProduction ? 'main.d3npwpotwjs8s0.amplifyapp.com' : 'localhost',
+                    domain: isProduction ? '.amplifyapp.com' : 'localhost',
                 });
                 // Set HTTP-only cookies
                 res.cookie('refreshToken', result.refreshToken, {
                     httpOnly: true,
                     secure: isProduction /* set to true in production */,
                     sameSite: 'strict',
-                    domain: isProduction ? 'main.d3npwpotwjs8s0.amplifyapp.com' : 'localhost',
+                    domain: isProduction ? '.amplifyapp.com' : 'localhost',
                 });
                 res.status(200).json({ auth: true, user: result.user });
             }

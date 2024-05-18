@@ -21,13 +21,14 @@ class UserController {
             const result = await this.userService.login(username, password);
 
             const isProduction: boolean = process.env.NODE_ENV === 'production';
+            console.log('isProduction:', isProduction);
 
             // Set HTTP-only cookies
             res.cookie('accessToken', result.accessToken, {
                 httpOnly: true,
                 secure: isProduction /* set to true in production */,
                 sameSite: 'strict',
-                domain: isProduction ? 'main.d3npwpotwjs8s0.amplifyapp.com' : 'localhost',
+                domain: isProduction ? '.amplifyapp.com' : 'localhost',
             });
 
             // Set HTTP-only cookies
@@ -35,7 +36,7 @@ class UserController {
                 httpOnly: true,
                 secure: isProduction /* set to true in production */,
                 sameSite: 'strict',
-                domain: isProduction ? 'main.d3npwpotwjs8s0.amplifyapp.com' : 'localhost',
+                domain: isProduction ? '.amplifyapp.com' : 'localhost',
             });
 
             res.status(200).json({ auth: true, user: result.user });
