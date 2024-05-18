@@ -29,6 +29,7 @@ class UserController {
                 secure: isProduction /* set to true in production */,
                 sameSite: 'strict',
                 domain: isProduction ? '.amplifyapp.com' : 'localhost',
+                path: '/',
             });
 
             // Set HTTP-only cookies
@@ -37,6 +38,7 @@ class UserController {
                 secure: isProduction /* set to true in production */,
                 sameSite: 'strict',
                 domain: isProduction ? '.amplifyapp.com' : 'localhost',
+                path: '/',
             });
 
             res.status(200).json({ auth: true, user: result.user });
