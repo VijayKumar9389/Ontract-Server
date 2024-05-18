@@ -27,7 +27,6 @@ class UserController {
             res.cookie('accessToken', result.accessToken, {
                 httpOnly: true,
                 secure: isProduction /* set to true in production */,
-                sameSite: 'strict',
                 domain: isProduction ? '.amplifyapp.com' : 'localhost',
                 path: '/',
             });
@@ -36,7 +35,6 @@ class UserController {
             res.cookie('refreshToken', result.refreshToken, {
                 httpOnly: true,
                 secure: isProduction /* set to true in production */,
-                sameSite: 'strict',
                 domain: isProduction ? '.amplifyapp.com' : 'localhost',
                 path: '/',
             });
