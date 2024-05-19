@@ -54,16 +54,15 @@ class UserController {
                 res.cookie('accessToken', result.accessToken, {
                     httpOnly: true,
                     secure: isProduction,
-                    sameSite: isProduction ? 'strict' : 'none',
-                    domain: isProduction ? '.amplifyapp.com' : 'localhost',
+                    domain: isProduction ? 'd3npwpotwjs8s0.amplifyapp.com' : 'localhost',
                     path: '/',
+                    expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
                 });
                 // Set HTTP-only cookies
                 res.cookie('refreshToken', result.refreshToken, {
                     httpOnly: true,
                     secure: isProduction,
-                    sameSite: isProduction ? 'strict' : 'none',
-                    domain: isProduction ? '.amplifyapp.com' : 'localhost',
+                    domain: isProduction ? 'd3npwpotwjs8s0.amplifyapp.com' : 'localhost',
                     path: '/',
                 });
                 res.status(200).json({ auth: true, user: result.user });
@@ -133,8 +132,7 @@ class UserController {
                 res.cookie('accessToken', result.accessToken, {
                     httpOnly: true,
                     secure: isProduction,
-                    sameSite: isProduction ? 'strict' : 'none',
-                    domain: isProduction ? '.amplifyapp.com' : 'localhost',
+                    domain: isProduction ? 'd3npwpotwjs8s0.amplifyapp.com' : 'localhost',
                     path: '/',
                 });
                 // Return the new access token and other details
