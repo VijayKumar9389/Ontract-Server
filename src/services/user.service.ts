@@ -2,6 +2,7 @@ import {PrismaClient, User} from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import {CreateUserDTO, UserOutputDTO} from '../dtos/user.dto';
+import {generateAccessToken, generateRefreshToken, verifyToken} from "../utils/tokenFunctions";
 
 interface TokenResponse {
     auth: boolean;
@@ -20,28 +21,31 @@ class UserService {
     // Login a user
     async login(username: string, password: string): Promise<TokenResponse> {
         try {
+            // Find the user in the database
             const user = await this.prisma.user.findUnique({
                 where: {username},
             });
 
+            // Check if the user exists
             if (!user) {
                 throw new Error('User does not exist');
             }
 
+            // Check if the password matches
             const passwordMatch: boolean = await bcrypt.compare(password, user.password);
 
+            // If the password does not match, throw an error
             if (!passwordMatch) {
                 throw new Error('Incorrect password');
             }
 
-            const token: string = this.generateAccessToken(user);
-            const refreshToken: string = jwt.sign({user}, 'secret', {expiresIn: '8hr'});
-
-            console.log(`${user.username} successfully logged in`);
+            // Generate an access token and a refresh token
+            const accessToken: string = generateAccessToken(user);
+            const refreshToken: string = generateRefreshToken(user);
 
             return {
                 auth: true,
-                accessToken: token,
+                accessToken: accessToken,
                 refreshToken: refreshToken,
                 user: user.username,
             };
@@ -74,9 +78,11 @@ class UserService {
     // Register a new user
     async register(createUserDTO: CreateUserDTO): Promise<User> {
         try {
+            // Hash the password
             const saltRounds: number = 10;
             const hashedPassword: string = await bcrypt.hash(createUserDTO.password, saltRounds);
 
+            // Create the user in the database
             return await this.prisma.user.create({
                 data: {
                     username: createUserDTO.username,
@@ -89,7 +95,7 @@ class UserService {
         }
     }
 
-//Edit a user
+    //Edit a user
     async editUser(id: number, username: string, password: string): Promise<User> {
         try {
             const saltRounds: number = 10;
@@ -103,23 +109,21 @@ class UserService {
         }
     }
 
-
     // Add a method to refresh the access token
     async refreshAccessToken(refreshToken: string): Promise<TokenResponse> {
         try {
             // Verify the refresh token
-            const decodedRefreshToken = jwt.verify(refreshToken, 'secret') as jwt.JwtPayload;
+            const decodedRefreshToken = verifyToken(refreshToken);
 
-            // Extract user information
-            const user = {
+            // Extract user information to generate a new access token
+            const user: User = {
                 id: decodedRefreshToken.id as number,
                 isAdmin: decodedRefreshToken.isAdmin as boolean,
                 username: decodedRefreshToken.username as string,
                 password: '',
             };
 
-            // Generate a new access token
-            const newAccessToken: string = this.generateAccessToken(user);
+            const newAccessToken: string = generateAccessToken(user);
 
             return {
                 auth: true,
@@ -130,21 +134,48 @@ class UserService {
         }
     }
 
-    // Generate an access token
-    private generateAccessToken(user: User): string {
-        const secretKey = 'secret';
-        const expiresIn = '15min';
 
-        return jwt.sign(
-            {
-                id: user.id,
-                username: user.username,
-                isAdmin: user.isAdmin,
-            },
-            secretKey,
-            {expiresIn}
-        );
-    }
+    // // Add a method to refresh the access token
+    // async refreshAccessToken(refreshToken: string): Promise<TokenResponse> {
+    //     try {
+    //         // Verify the refresh token
+    //         const decodedRefreshToken = jwt.verify(refreshToken, 'secret') as jwt.JwtPayload;
+    //
+    //         // Extract user information
+    //         const user = {
+    //             id: decodedRefreshToken.id as number,
+    //             isAdmin: decodedRefreshToken.isAdmin as boolean,
+    //             username: decodedRefreshToken.username as string,
+    //             password: '',
+    //         };
+    //
+    //         // Generate a new access token
+    //         const newAccessToken: string = this.generateAccessToken(user);
+    //
+    //         return {
+    //             auth: true,
+    //             accessToken: newAccessToken,
+    //         };
+    //     } catch (error: any) {
+    //         throw new Error('Invalid refresh token');
+    //     }
+    // }
+    //
+    // // Generate an access token
+    // private generateAccessToken(user: User): string {
+    //     const secretKey = 'secret';
+    //     const expiresIn = '15min';
+    //
+    //     return jwt.sign(
+    //         {
+    //             id: user.id,
+    //             username: user.username,
+    //             isAdmin: user.isAdmin,
+    //         },
+    //         secretKey,
+    //         {expiresIn}
+    //     );
+    // }
 }
 
 export default UserService;

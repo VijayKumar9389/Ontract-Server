@@ -1,22 +1,25 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
 const validateToken = (checkAdmin: boolean) => async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-        const token = req.cookies.accessToken;
+        const token = req.headers['accesstoken'] as string;
 
         if (!token) {
             res.status(401).json({ auth: false, msg: 'Please log in' });
             return;
         }
 
-        const user: any = jwt.verify(token, 'secret');
+        const user = jwt.verify(token, 'secret') as JwtPayload;
         console.log('Valid Token', user);
 
         if (checkAdmin && user.isAdmin !== true) {
             res.status(403).json({ auth: false, msg: 'Permission denied. User is not an admin.' });
             return;
         }
+
+        // Attach user info to the request object for further middleware use
+        (req as any).user = user;
 
         next();
     } catch (err: any) {

@@ -26,17 +26,17 @@ router.get('/getAll', async (req: Request, res: Response): Promise<void> => {
 });
 
 // Refresh Token
-router.post('/refresh-token', validateToken(false), async (req: Request, res: Response): Promise<void> => {
+router.post('/refresh-token', async (req: Request, res: Response): Promise<void> => {
     await userController.refreshAccessToken(req, res);
 });
 
 // Verify Token
-router.post('/verify-token', validateToken(false), async (req: Request, res: Response): Promise<void> => {
+router.post('/verify-token', async (req: Request, res: Response): Promise<void> => {
     await userController.verifySession(req, res);
 });
 
 // Example route requiring admin access
-router.get('/admin-status', validateToken(false), async (req: Request, res: Response): Promise<void> => {
+router.post('/admin-status', async (req: Request, res: Response): Promise<void> => {
     await userController.verifyAdminStatus(req, res);
 });
 
