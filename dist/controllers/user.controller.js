@@ -38,6 +38,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const user_service_1 = __importDefault(require("../services/user.service"));
 const jsonwebtoken_1 = __importStar(require("jsonwebtoken"));
 class UserController {
+    // Initialize the user service
     constructor() {
         this.userService = new user_service_1.default();
     }
@@ -45,27 +46,14 @@ class UserController {
     login(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { username, password } = req.body;
-            // Log the request body to inspect its structure
             try {
-                // Call the login method from the user service
                 const result = yield this.userService.login(username, password);
-                const isProduction = process.env.NODE_ENV === 'production';
-                // Set HTTP-only cookies
-                res.cookie('accessToken', result.accessToken, {
-                    httpOnly: true,
-                    secure: isProduction,
-                    domain: isProduction ? 'd3npwpotwjs8s0.amplifyapp.com' : 'localhost',
-                    path: '/',
-                    expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
+                res.status(200).json({
+                    auth: true,
+                    user: result.user,
+                    accessToken: result.accessToken,
+                    refreshToken: result.refreshToken
                 });
-                // Set HTTP-only cookies
-                res.cookie('refreshToken', result.refreshToken, {
-                    httpOnly: true,
-                    secure: isProduction,
-                    domain: isProduction ? 'd3npwpotwjs8s0.amplifyapp.com' : 'localhost',
-                    path: '/',
-                });
-                res.status(200).json({ auth: true, user: result.user });
             }
             catch (error) {
                 console.error('Error during login:', error);
@@ -73,7 +61,7 @@ class UserController {
             }
         });
     }
-    //Get all users
+    // Get all users
     getUsers(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -114,106 +102,80 @@ class UserController {
             }
         });
     }
-    // Method to refresh the access token
+    // Refresh the access token
     refreshAccessToken(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const refreshToken = req.cookies.refreshToken;
+            const { refreshToken } = req.body;
             try {
                 if (!refreshToken) {
                     res.status(401).json({ error: 'No refresh token provided' });
                     return;
                 }
-                // Verify the refresh token
-                jsonwebtoken_1.default.verify(refreshToken, 'secret');
-                // If verification is successful, refresh the access token
-                const result = yield this.userService.refreshAccessToken(refreshToken);
-                const isProduction = process.env.NODE_ENV === 'production';
-                // Set HTTP-only cookies
-                res.cookie('accessToken', result.accessToken, {
-                    httpOnly: true,
-                    secure: isProduction,
-                    domain: isProduction ? 'd3npwpotwjs8s0.amplifyapp.com' : 'localhost',
-                    path: '/',
-                });
-                // Return the new access token and other details
-                res.status(200).json(result);
+                const newAccessTokenResponse = yield this.userService.refreshAccessToken(refreshToken);
+                res.status(200).json(newAccessTokenResponse);
             }
             catch (error) {
-                // Handle token verification failure
                 console.error('Error refreshing access token:', error);
                 if (error instanceof jsonwebtoken_1.TokenExpiredError) {
-                    // Token has expired
                     res.status(401).json({ error: 'Refresh token expired' });
                 }
                 else {
-                    // Other verification errors
                     res.status(500).json({ error: 'Failed to refresh access token' });
                 }
             }
         });
     }
-    // Method to verify user session using refresh token
+    // Verify user session using refresh token
     verifySession(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const refreshToken = req.cookies.refreshToken;
+            const { refreshToken } = req.body;
             try {
                 if (!refreshToken) {
                     res.status(401).json({ auth: false });
                     return;
                 }
-                // Verify the refresh token
                 const decodedToken = jsonwebtoken_1.default.verify(refreshToken, 'secret');
                 const user = {
-                    id: decodedToken.user.id,
-                    isAdmin: decodedToken.user.isAdmin,
-                    username: decodedToken.user.username,
+                    id: decodedToken.id,
+                    isAdmin: decodedToken.isAdmin,
+                    username: decodedToken.username,
                 };
-                // If verification is successful, return authentication success
-                res.json({ auth: true, user: user.username });
+                res.json({ auth: true, user: user.username, refreshToken: refreshToken });
             }
             catch (error) {
-                // Handle token verification failure
                 console.error('Error verifying user session:', error);
-                // If the token has expired, return a 401 status code
                 if (error instanceof jsonwebtoken_1.TokenExpiredError) {
-                    // Token has expired
                     res.status(401).json({ auth: false, error: 'Token expired' });
                 }
                 else {
-                    // Other verification errors
                     res.status(500).json({ auth: false, error: 'Failed to verify session' });
                 }
             }
         });
     }
+    // Verify admin status using refresh token
     verifyAdminStatus(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const refreshToken = req.cookies.refreshToken;
+            const { refreshToken } = req.body;
             try {
                 if (!refreshToken) {
-                    res.status(401).json({ auth: false });
+                    res.status(401).json({ auth: false, error: 'No refresh token provided' });
                     return;
                 }
-                // Verify the refresh token
                 const decodedToken = jsonwebtoken_1.default.verify(refreshToken, 'secret');
                 const user = {
-                    id: decodedToken.user.id,
-                    isAdmin: decodedToken.user.isAdmin,
-                    username: decodedToken.user.username,
+                    id: decodedToken.id,
+                    isAdmin: decodedToken.isAdmin,
+                    username: decodedToken.username,
                 };
-                // If verification is successful, return authentication success along with isAdmin status
-                res.json({ auth: true, isAdmin: user.isAdmin });
+                res.json({ auth: user.isAdmin });
             }
             catch (error) {
-                // Handle token verification failure
                 console.error('Error verifying user session:', error);
-                // If the token has expired, return a 401 status code
                 if (error instanceof jsonwebtoken_1.TokenExpiredError) {
-                    // Token has expired
                     res.status(401).json({ auth: false, error: 'Token expired' });
                 }
                 else {
-                    // Other verification errors
                     res.status(500).json({ auth: false, error: 'Failed to verify session' });
                 }
             }

@@ -35,10 +35,10 @@ const app = (0, express_1.default)();
 const port = parseInt(process.env.PORT || '8080', 10);
 // enable cors
 app.use((0, cors_1.default)({
-    origin: process.env.ORIGIN,
+    origin: 'http://localhost:5173',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Origin', 'accessToken', 'refreshToken'], // Include 'accessToken' header here
     exposedHeaders: ['Authorization'],
 }));
 // allow express to parse json and x-www-form-urlencoded request bodies

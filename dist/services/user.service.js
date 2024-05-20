@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const tokenFunctions_1 = require("../utils/tokenFunctions");
 class UserService {
     constructor() {
         this.prisma = new client_1.PrismaClient();
@@ -23,22 +23,26 @@ class UserService {
     login(username, password) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                // Find the user in the database
                 const user = yield this.prisma.user.findUnique({
                     where: { username },
                 });
+                // Check if the user exists
                 if (!user) {
                     throw new Error('User does not exist');
                 }
+                // Check if the password matches
                 const passwordMatch = yield bcrypt_1.default.compare(password, user.password);
+                // If the password does not match, throw an error
                 if (!passwordMatch) {
                     throw new Error('Incorrect password');
                 }
-                const token = this.generateAccessToken(user);
-                const refreshToken = jsonwebtoken_1.default.sign({ user }, 'secret', { expiresIn: '8hr' });
-                console.log(`${user.username} successfully logged in`);
+                // Generate an access token and a refresh token
+                const accessToken = (0, tokenFunctions_1.generateAccessToken)(user);
+                const refreshToken = (0, tokenFunctions_1.generateRefreshToken)(user);
                 return {
                     auth: true,
-                    accessToken: token,
+                    accessToken: accessToken,
                     refreshToken: refreshToken,
                     user: user.username,
                 };
@@ -72,8 +76,10 @@ class UserService {
     register(createUserDTO) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                // Hash the password
                 const saltRounds = 10;
                 const hashedPassword = yield bcrypt_1.default.hash(createUserDTO.password, saltRounds);
+                // Create the user in the database
                 return yield this.prisma.user.create({
                     data: {
                         username: createUserDTO.username,
@@ -107,16 +113,15 @@ class UserService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 // Verify the refresh token
-                const decodedRefreshToken = jsonwebtoken_1.default.verify(refreshToken, 'secret');
-                // Extract user information
+                const decodedRefreshToken = (0, tokenFunctions_1.verifyToken)(refreshToken);
+                // Extract user information to generate a new access token
                 const user = {
                     id: decodedRefreshToken.id,
                     isAdmin: decodedRefreshToken.isAdmin,
                     username: decodedRefreshToken.username,
                     password: '',
                 };
-                // Generate a new access token
-                const newAccessToken = this.generateAccessToken(user);
+                const newAccessToken = (0, tokenFunctions_1.generateAccessToken)(user);
                 return {
                     auth: true,
                     accessToken: newAccessToken,
@@ -126,16 +131,6 @@ class UserService {
                 throw new Error('Invalid refresh token');
             }
         });
-    }
-    // Generate an access token
-    generateAccessToken(user) {
-        const secretKey = 'secret';
-        const expiresIn = '15min';
-        return jsonwebtoken_1.default.sign({
-            id: user.id,
-            username: user.username,
-            isAdmin: user.isAdmin,
-        }, secretKey, { expiresIn });
     }
 }
 exports.default = UserService;

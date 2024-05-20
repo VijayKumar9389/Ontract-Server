@@ -14,4 +14,3 @@ router.get('/get/:projectId', projectController.getProject);
 router.get('/getall', projectController.getAllProjects);
 router.put('/edit/:projectId', projectController.editProject);
 exports.default = router;
-``;

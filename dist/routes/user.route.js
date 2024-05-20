@@ -34,15 +34,15 @@ router.get('/getAll', (req, res) => __awaiter(void 0, void 0, void 0, function* 
     yield userController.getUsers(req, res);
 }));
 // Refresh Token
-router.post('/refresh-token', (0, auth_1.default)(false), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/refresh-token', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     yield userController.refreshAccessToken(req, res);
 }));
 // Verify Token
-router.post('/verify-token', (0, auth_1.default)(false), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/verify-token', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     yield userController.verifySession(req, res);
 }));
 // Example route requiring admin access
-router.get('/admin-status', (0, auth_1.default)(false), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/admin-status', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     yield userController.verifyAdminStatus(req, res);
 }));
 exports.default = router;

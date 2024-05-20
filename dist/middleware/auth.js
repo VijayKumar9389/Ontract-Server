@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const validateToken = (checkAdmin) => (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const token = req.cookies.accessToken;
+        const token = req.headers['accesstoken'];
         if (!token) {
             res.status(401).json({ auth: false, msg: 'Please log in' });
             return;
@@ -26,6 +26,8 @@ const validateToken = (checkAdmin) => (req, res, next) => __awaiter(void 0, void
             res.status(403).json({ auth: false, msg: 'Permission denied. User is not an admin.' });
             return;
         }
+        // Attach user info to the request object for further middleware use
+        req.user = user;
         next();
     }
     catch (err) {
