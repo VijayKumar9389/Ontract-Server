@@ -28,7 +28,7 @@ const port: number = parseInt(process.env.PORT || '8080', 10);
 
 // enable cors
 app.use(cors({
-    origin: process.env.ORIGIN,
+    origin: [process.env.ORIGIN, process.env.ORIGIN_WWW], // Array of allowed origins
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'accessToken', 'refreshToken'], // Include 'accessToken' header here
