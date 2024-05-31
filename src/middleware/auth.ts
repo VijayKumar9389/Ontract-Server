@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import { JwtPayload } from 'jsonwebtoken';
+import { validateAccessToken } from "../utils/token.utils";
 
 const validateToken = (checkAdmin: boolean) => async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -10,7 +11,7 @@ const validateToken = (checkAdmin: boolean) => async (req: Request, res: Respons
             return;
         }
 
-        const user = jwt.verify(token, 'secret') as JwtPayload;
+        const user = validateAccessToken(token) as JwtPayload;
         console.log('Valid Token', user);
 
         if (checkAdmin && user.isAdmin !== true) {

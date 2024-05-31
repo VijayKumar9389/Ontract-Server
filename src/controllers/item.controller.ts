@@ -1,10 +1,11 @@
 import path from 'path';
 import {Request, Response} from 'express';
 import {ItemService} from "../services/item.service";
-import {CreateItemDTO, CreatePackageItemDTO, UpdateItemDTO} from '../dtos/item.dto';
+import {CreatePackageItemDTO, UpdateItemDTO} from '../dtos/item.dto';
 import {Item} from '@prisma/client';
-import fs from 'fs';
 import {v4 as uuidv4} from 'uuid';
+import {bucketName, s3} from "../middleware/s3";
+import {DeleteObjectCommand, PutObjectCommand} from "@aws-sdk/client-s3";
 
 export class ItemController {
     private itemService: ItemService;
@@ -17,36 +18,45 @@ export class ItemController {
     async createItem(req: Request, res: Response): Promise<void> {
         try {
             // Get request body
-            const {name, description, image, quantity} = req.body as CreateItemDTO;
+            const { name, description, quantity } = req.body;
             const imageFile: Express.Multer.File | undefined = req.file;
-            console.log(req.file)
 
             // Validate request body
             if (!imageFile) {
-                res.status(400).json({message: 'Image file is required'});
+                res.status(400).json({ message: 'Image file is required' });
                 return;
             }
 
-            // Validate file type
-            const imagePath: string = path.join('uploads', path.basename(imageFile.path));
+            // Generate a unique filename for the S3 object
+            const randomName: string = uuidv4();
 
-            // Create item
-            const itemInput: CreateItemDTO = {
-                name,
-                description,
-                image: imageFile,
-                projectId: req.body.projectId,
-                quantity: parseInt(req.body.quantity, 10),
+            // Upload image to S3
+            const uploadParams = {
+                Bucket: bucketName,
+                Key: randomName,
+                Body: imageFile.buffer,
+                ContentType: imageFile.mimetype,
             };
 
-            // Create a new item using the item service
-            const createdItem: Item = await this.itemService.createItem(itemInput);
+            // Upload the image to S3
+            await s3.send(new PutObjectCommand(uploadParams));
 
-            console.log('successfully created item', itemInput);
-            res.status(201).json({message: 'Item created successfully', item: createdItem});
+            // Create item with the S3 file path
+            const itemInput = {
+                name,
+                description,
+                image: randomName,  // Store the S3 file path or URL
+                projectId: req.body.projectId,
+                quantity: parseInt(quantity, 10),
+            };
+
+            // Create the item using the itemService
+            const createdItem = await this.itemService.createItem(itemInput);
+
+            res.status(201).json({ message: 'Item created successfully', item: createdItem });
         } catch (error) {
             console.error('Error creating item:', error);
-            res.status(500).json({message: 'Internal server error'});
+            res.status(500).json({ message: 'Internal server error' });
         }
     }
 
@@ -68,17 +78,27 @@ export class ItemController {
 
             // Validate request body
             if (imageFile) {
-                // Remove the current image file if it exists
+                // Upload the new image to S3
+                const randomName: string = uuidv4();
+                const uploadParams = {
+                    Bucket: bucketName,
+                    Key: randomName,
+                    Body: imageFile.buffer,
+                    ContentType: imageFile.mimetype,
+                };
+                await s3.send(new PutObjectCommand(uploadParams));
+
+                // Remove the current image file from S3 if it exists
                 if (currentItem.image) {
-                    const currentImagePath: string = path.join('uploads', currentItem.image);
-                    fs.unlinkSync(currentImagePath);
+                    const deleteParams = {
+                        Bucket: bucketName,
+                        Key: currentItem.image,
+                    };
+                    await s3.send(new DeleteObjectCommand(deleteParams));
                 }
 
-                // Validate file type
-                const imagePath: string = path.basename(imageFile.path);
-
-                // Update the image property in the database
-                currentItem.image = imagePath;
+                // Update the image property in the database with the new S3 key
+                currentItem.image = randomName;
             }
 
             // Update other properties of the item
@@ -95,6 +115,7 @@ export class ItemController {
             res.status(500).json({ message: 'Internal server error' });
         }
     }
+
 
     //Get an item along with its package items by item ID
     async getItemWithPackageItems(req: Request, res: Response): Promise<void> {
@@ -113,12 +134,15 @@ export class ItemController {
         try {
             // Get item ID from request parameters
             const itemId: number = parseInt(req.params.itemId, 10);
-            // Call the item service to delete the item
+
+            // Delete the item using the service
             await this.itemService.deleteItem(itemId);
-            res.status(204).json(); // Respond with success status
+
+            // Respond with success status
+            res.status(204).json();
         } catch (error) {
             console.error('Error deleting item:', error);
-            res.status(500).json({message: 'Internal server error'});
+            res.status(500).json({ message: 'Internal server error' });
         }
     }
 

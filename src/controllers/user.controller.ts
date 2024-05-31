@@ -4,7 +4,6 @@ import {CreateUserDTO, UserOutputDTO} from '../dtos/user.dto';
 import {User} from "@prisma/client";
 import jwt, {TokenExpiredError} from "jsonwebtoken";
 
-
 class UserController {
 
     private userService: UserService;
@@ -69,7 +68,7 @@ class UserController {
 
     // Refresh the access token
     async refreshAccessToken(req: Request, res: Response): Promise<void> {
-        const { refreshToken } = req.body;
+        const refreshToken = req.headers.refreshtoken as string | undefined;
 
         try {
             if (!refreshToken) {
@@ -92,7 +91,7 @@ class UserController {
 
     // Verify user session using refresh token
     async verifySession(req: Request, res: Response): Promise<void> {
-        const { refreshToken } = req.body;
+        const refreshToken = req.headers.refreshtoken as string | undefined;
 
         try {
             if (!refreshToken) {
@@ -118,10 +117,9 @@ class UserController {
         }
     }
 
-
     // Verify admin status using refresh token
     async verifyAdminStatus(req: Request, res: Response): Promise<void> {
-        const { refreshToken } = req.body;
+        const refreshToken = req.headers.refreshtoken as string | undefined;
 
         try {
             if (!refreshToken) {
@@ -137,7 +135,7 @@ class UserController {
                 username: decodedToken.username as string,
             };
 
-            res.json({ auth: user.isAdmin });
+            res.json({ auth: user.isAdmin, user: user.username });
         } catch (error) {
             console.error('Error verifying user session:', error);
             if (error instanceof TokenExpiredError) {

@@ -26,6 +26,9 @@ const item_route_1 = __importDefault(require("./routes/item.route"));
 const stakeholder_route_1 = __importDefault(require("./routes/stakeholder.route"));
 const tract_record_route_1 = __importDefault(require("./routes/tract-record.route"));
 const client_1 = require("@prisma/client");
+const s3_1 = require("./middleware/s3");
+const client_s3_1 = require("@aws-sdk/client-s3");
+const s3_request_presigner_1 = require("@aws-sdk/s3-request-presigner");
 // Initialize Prisma
 const prisma = new client_1.PrismaClient();
 // Load environment variables from .env file
@@ -38,7 +41,7 @@ app.use((0, cors_1.default)({
     origin: process.env.ORIGIN,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Origin', 'accessToken', 'refreshToken'], // Include 'accessToken' header here
+    allowedHeaders: ['Content-Type', 'Authorization', 'accessToken', 'refreshToken'], // Include 'accessToken' header here
     exposedHeaders: ['Authorization'],
 }));
 // allow express to parse json and x-www-form-urlencoded request bodies
@@ -55,6 +58,23 @@ app.get('/images/:name', (req, res) => {
     const imagePath = path_1.default.join(__dirname, `../uploads/${name}`);
     res.sendFile(imagePath);
 });
+app.get('/api/images/:name', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name } = req.params;
+    console.log(name);
+    const params = {
+        Bucket: s3_1.bucketName,
+        Key: name,
+    };
+    try {
+        const command = new client_s3_1.GetObjectCommand(params);
+        const signedUrl = yield (0, s3_request_presigner_1.getSignedUrl)(s3_1.s3, command, { expiresIn: 3600 }); // URL expires in 1 hour
+        res.json({ url: signedUrl });
+    }
+    catch (error) {
+        console.error('Error generating signed URL:', error);
+        res.status(500).json({ error: 'Failed to generate signed URL' });
+    }
+}));
 // Route to check Prisma connection
 app.get('/check-prisma', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {

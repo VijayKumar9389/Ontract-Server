@@ -12,6 +12,9 @@ import itemRoutes from "./routes/item.route";
 import stakeholderRoutes from "./routes/stakeholder.route";
 import tractRecordRoute from "./routes/tract-record.route";
 import { PrismaClient } from '@prisma/client';
+import {bucketName, s3} from "./middleware/s3";
+import {GetObjectCommand} from "@aws-sdk/client-s3";
+import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
 
 // Initialize Prisma
 const prisma = new PrismaClient();
@@ -28,7 +31,7 @@ app.use(cors({
     origin: process.env.ORIGIN,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Origin', 'accessToken', 'refreshToken'], // Include 'accessToken' header here
+    allowedHeaders: ['Content-Type', 'Authorization', 'accessToken', 'refreshToken'], // Include 'accessToken' header here
     exposedHeaders: ['Authorization'],
 }));
 
@@ -47,6 +50,26 @@ app.get('/images/:name', (req: Request, res: Response): void => {
     const { name } = req.params;
     const imagePath: string = path.join(__dirname, `../uploads/${name}`);
     res.sendFile(imagePath);
+});
+
+app.get('/api/images/:name', async (req: Request, res: Response,): Promise<void> => {
+    const { name } = req.params;
+
+    console.log(name)
+
+    const params = {
+        Bucket: bucketName!,
+        Key: name,
+    };
+
+    try {
+        const command = new GetObjectCommand(params);
+        const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 }); // URL expires in 1 hour
+        res.json({ url: signedUrl });
+    } catch (error) {
+        console.error('Error generating signed URL:', error);
+        res.status(500).json({ error: 'Failed to generate signed URL' });
+    }
 });
 
 // Route to check Prisma connection

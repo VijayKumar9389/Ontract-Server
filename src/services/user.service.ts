@@ -2,7 +2,7 @@ import {PrismaClient, User} from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import {CreateUserDTO, UserOutputDTO} from '../dtos/user.dto';
-import {generateAccessToken, generateRefreshToken, verifyToken} from "../utils/tokenFunctions";
+import {generateAccessToken, generateRefreshToken, validateRefreshToken} from "../utils/token.utils";
 
 interface TokenResponse {
     auth: boolean;
@@ -113,7 +113,7 @@ class UserService {
     async refreshAccessToken(refreshToken: string): Promise<TokenResponse> {
         try {
             // Verify the refresh token
-            const decodedRefreshToken = verifyToken(refreshToken);
+            const decodedRefreshToken = validateRefreshToken(refreshToken);
 
             // Extract user information to generate a new access token
             const user: User = {
@@ -133,49 +133,6 @@ class UserService {
             throw new Error('Invalid refresh token');
         }
     }
-
-
-    // // Add a method to refresh the access token
-    // async refreshAccessToken(refreshToken: string): Promise<TokenResponse> {
-    //     try {
-    //         // Verify the refresh token
-    //         const decodedRefreshToken = jwt.verify(refreshToken, 'secret') as jwt.JwtPayload;
-    //
-    //         // Extract user information
-    //         const user = {
-    //             id: decodedRefreshToken.id as number,
-    //             isAdmin: decodedRefreshToken.isAdmin as boolean,
-    //             username: decodedRefreshToken.username as string,
-    //             password: '',
-    //         };
-    //
-    //         // Generate a new access token
-    //         const newAccessToken: string = this.generateAccessToken(user);
-    //
-    //         return {
-    //             auth: true,
-    //             accessToken: newAccessToken,
-    //         };
-    //     } catch (error: any) {
-    //         throw new Error('Invalid refresh token');
-    //     }
-    // }
-    //
-    // // Generate an access token
-    // private generateAccessToken(user: User): string {
-    //     const secretKey = 'secret';
-    //     const expiresIn = '15min';
-    //
-    //     return jwt.sign(
-    //         {
-    //             id: user.id,
-    //             username: user.username,
-    //             isAdmin: user.isAdmin,
-    //         },
-    //         secretKey,
-    //         {expiresIn}
-    //     );
-    // }
 }
 
 export default UserService;

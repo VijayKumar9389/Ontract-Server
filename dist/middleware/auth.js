@@ -8,11 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const token_utils_1 = require("../utils/token.utils");
 const validateToken = (checkAdmin) => (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const token = req.headers['accesstoken'];
@@ -20,7 +17,7 @@ const validateToken = (checkAdmin) => (req, res, next) => __awaiter(void 0, void
             res.status(401).json({ auth: false, msg: 'Please log in' });
             return;
         }
-        const user = jsonwebtoken_1.default.verify(token, 'secret');
+        const user = (0, token_utils_1.validateAccessToken)(token);
         console.log('Valid Token', user);
         if (checkAdmin && user.isAdmin !== true) {
             res.status(403).json({ auth: false, msg: 'Permission denied. User is not an admin.' });

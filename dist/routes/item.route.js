@@ -5,13 +5,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // item.routes.ts
 const express_1 = __importDefault(require("express"));
-const upload_1 = require("../middleware/upload");
+const multer_1 = __importDefault(require("../middleware/multer"));
 const item_controller_1 = require("../controllers/item.controller");
 const router = express_1.default.Router();
 const itemController = new item_controller_1.ItemController();
 // Create Item route
-router.post('/create', upload_1.upload.single('image'), (req, res) => itemController.createItem(req, res));
-router.put('/update/:itemId', upload_1.upload.single('image'), (req, res) => itemController.updateItem(req, res));
+router.post('/create', multer_1.default.single('image'), (req, res) => itemController.createItem(req, res));
+router.put('/update/:itemId', multer_1.default.single('image'), (req, res) => itemController.updateItem(req, res));
 router.delete('/delete/:itemId', (req, res) => itemController.deleteItem(req, res));
 // Get All Items
 router.get('/getall/:projectId', (req, res) => itemController.getAllItems(req, res));

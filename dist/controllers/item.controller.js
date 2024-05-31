@@ -8,14 +8,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ItemController = void 0;
-const path_1 = __importDefault(require("path"));
 const item_service_1 = require("../services/item.service");
-const fs_1 = __importDefault(require("fs"));
+const uuid_1 = require("uuid");
+const s3_1 = require("../middleware/s3");
+const client_s3_1 = require("@aws-sdk/client-s3");
 class ItemController {
     constructor() {
         this.itemService = new item_service_1.ItemService();
@@ -25,27 +23,34 @@ class ItemController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 // Get request body
-                const { name, description, image, quantity } = req.body;
+                const { name, description, quantity } = req.body;
                 const imageFile = req.file;
-                console.log(req.file);
                 // Validate request body
                 if (!imageFile) {
                     res.status(400).json({ message: 'Image file is required' });
                     return;
                 }
-                // Validate file type
-                const imagePath = path_1.default.join('uploads', path_1.default.basename(imageFile.path));
-                // Create item
+                // Generate a unique filename for the S3 object
+                const randomName = (0, uuid_1.v4)();
+                // Upload image to S3
+                const uploadParams = {
+                    Bucket: s3_1.bucketName,
+                    Key: randomName,
+                    Body: imageFile.buffer,
+                    ContentType: imageFile.mimetype,
+                };
+                // Upload the image to S3
+                yield s3_1.s3.send(new client_s3_1.PutObjectCommand(uploadParams));
+                // Create item with the S3 file path
                 const itemInput = {
                     name,
                     description,
-                    image: imageFile,
+                    image: randomName, // Store the S3 file path or URL
                     projectId: req.body.projectId,
-                    quantity: parseInt(req.body.quantity, 10),
+                    quantity: parseInt(quantity, 10),
                 };
-                // Create a new item using the item service
+                // Create the item using the itemService
                 const createdItem = yield this.itemService.createItem(itemInput);
-                console.log('successfully created item', itemInput);
                 res.status(201).json({ message: 'Item created successfully', item: createdItem });
             }
             catch (error) {
@@ -70,15 +75,25 @@ class ItemController {
                 }
                 // Validate request body
                 if (imageFile) {
-                    // Remove the current image file if it exists
+                    // Upload the new image to S3
+                    const randomName = (0, uuid_1.v4)();
+                    const uploadParams = {
+                        Bucket: s3_1.bucketName,
+                        Key: randomName,
+                        Body: imageFile.buffer,
+                        ContentType: imageFile.mimetype,
+                    };
+                    yield s3_1.s3.send(new client_s3_1.PutObjectCommand(uploadParams));
+                    // Remove the current image file from S3 if it exists
                     if (currentItem.image) {
-                        const currentImagePath = path_1.default.join('uploads', currentItem.image);
-                        fs_1.default.unlinkSync(currentImagePath);
+                        const deleteParams = {
+                            Bucket: s3_1.bucketName,
+                            Key: currentItem.image,
+                        };
+                        yield s3_1.s3.send(new client_s3_1.DeleteObjectCommand(deleteParams));
                     }
-                    // Validate file type
-                    const imagePath = path_1.default.basename(imageFile.path);
-                    // Update the image property in the database
-                    currentItem.image = imagePath;
+                    // Update the image property in the database with the new S3 key
+                    currentItem.image = randomName;
                 }
                 // Update other properties of the item
                 currentItem.name = name;
@@ -114,9 +129,10 @@ class ItemController {
             try {
                 // Get item ID from request parameters
                 const itemId = parseInt(req.params.itemId, 10);
-                // Call the item service to delete the item
+                // Delete the item using the service
                 yield this.itemService.deleteItem(itemId);
-                res.status(204).json(); // Respond with success status
+                // Respond with success status
+                res.status(204).json();
             }
             catch (error) {
                 console.error('Error deleting item:', error);

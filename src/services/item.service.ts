@@ -1,7 +1,7 @@
 import {PrismaClient, Item, PackageItem} from '@prisma/client';
 import {CreateItemDTO} from '../dtos/item.dto';
-import path from 'path';
-import fs from 'fs';
+import {DeleteObjectCommand} from "@aws-sdk/client-s3";
+import {bucketName, s3} from "../middleware/s3";
 
 export class ItemService {
     private prisma: PrismaClient;
@@ -17,7 +17,7 @@ export class ItemService {
             return await this.prisma.item.create({
                 data: {
                     ...rest,
-                    image: path.basename(image.path),
+                    image: image,
                     projectId: Number(itemData.projectId),
                 },
             });
@@ -68,13 +68,13 @@ export class ItemService {
         });
     }
 
-    //Delete Item by ID
+    // Delete Item by ID
     async deleteItem(itemId: number): Promise<void> {
         try {
             // Retrieve the item from the database along with its associated packageItems
             const item = await this.prisma.item.findUnique({
-                where: {id: itemId},
-                include: {packageItems: true},
+                where: { id: itemId },
+                include: { packageItems: true },
             });
 
             // Check if the item exists
@@ -89,12 +89,17 @@ export class ItemService {
 
             // Delete the item from the database
             await this.prisma.item.delete({
-                where: {id: itemId},
+                where: { id: itemId },
             });
 
-            // Remove the associated image file from the file system
-            const imagePath = path.join('uploads', path.basename(item.image));
-            fs.unlinkSync(imagePath);
+            // If the item had an associated image, delete it from S3
+            if (item.image) {
+                const deleteParams = {
+                    Bucket: bucketName,
+                    Key: item.image,
+                };
+                await s3.send(new DeleteObjectCommand(deleteParams));
+            }
         } catch (error) {
             console.error('Error deleting item:', error);
             throw new Error('Failed to delete item');

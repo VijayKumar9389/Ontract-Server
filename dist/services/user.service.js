@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const tokenFunctions_1 = require("../utils/tokenFunctions");
+const token_utils_1 = require("../utils/token.utils");
 class UserService {
     constructor() {
         this.prisma = new client_1.PrismaClient();
@@ -38,8 +38,8 @@ class UserService {
                     throw new Error('Incorrect password');
                 }
                 // Generate an access token and a refresh token
-                const accessToken = (0, tokenFunctions_1.generateAccessToken)(user);
-                const refreshToken = (0, tokenFunctions_1.generateRefreshToken)(user);
+                const accessToken = (0, token_utils_1.generateAccessToken)(user);
+                const refreshToken = (0, token_utils_1.generateRefreshToken)(user);
                 return {
                     auth: true,
                     accessToken: accessToken,
@@ -113,7 +113,7 @@ class UserService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 // Verify the refresh token
-                const decodedRefreshToken = (0, tokenFunctions_1.verifyToken)(refreshToken);
+                const decodedRefreshToken = (0, token_utils_1.validateRefreshToken)(refreshToken);
                 // Extract user information to generate a new access token
                 const user = {
                     id: decodedRefreshToken.id,
@@ -121,7 +121,7 @@ class UserService {
                     username: decodedRefreshToken.username,
                     password: '',
                 };
-                const newAccessToken = (0, tokenFunctions_1.generateAccessToken)(user);
+                const newAccessToken = (0, token_utils_1.generateAccessToken)(user);
                 return {
                     auth: true,
                     accessToken: newAccessToken,

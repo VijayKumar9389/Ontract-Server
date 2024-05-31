@@ -5,6 +5,8 @@ import fs from "fs";
 import path from 'path';
 import {Item} from "@prisma/client";
 import {ItemService} from "../services/item.service";
+import {DeleteObjectCommand} from "@aws-sdk/client-s3";
+import {bucketName, s3} from "../middleware/s3";
 
 class ProjectController {
     private projectService: ProjectService;
@@ -25,9 +27,11 @@ class ProjectController {
             if (!projectInput.name) {
                 res.status(400).json({ error: 'Project name is required' });
                 return;
+
             } else if (!projectInput.projectRecords || projectInput.projectRecords.length === 0) {
                 res.status(400).json({ error: 'Project records are required' });
                 return;
+
             }
 
             // Create a new project using the project service
@@ -50,11 +54,14 @@ class ProjectController {
             // Fetch items associated with the project
             const items: Item[] = await this.itemService.getItemsByProjectId(projectId);
 
-            // Iterate through items and delete images
+            // Iterate through items and delete images from S3
             for (const item of items) {
                 if (item.image) {
-                    const imagePath: string = path.join('uploads', item.image);
-                    fs.unlinkSync(imagePath);
+                    const deleteParams = {
+                        Bucket: bucketName, // Replace with your actual bucket name
+                        Key: item.image,
+                    };
+                    await s3.send(new DeleteObjectCommand(deleteParams));
                 }
             }
 
@@ -68,6 +75,8 @@ class ProjectController {
         }
     }
 
+
+    // Edit a project
     editProject = async (req: Request, res: Response): Promise<void> => {
         const projectId: number = parseInt(req.params.projectId, 10);
         const projectData: EditProjectInputDTO = req.body;
@@ -82,6 +91,7 @@ class ProjectController {
         }
     };
 
+    // Get a project
     getProject = async (req: Request, res: Response): Promise<void> => {
         const projectId = parseInt(req.params.projectId, 10);
 
@@ -100,6 +110,7 @@ class ProjectController {
         }
     };
 
+    // Get all projects
     getAllProjects = async (_req: Request, res: Response): Promise<void> => {
         try {
             // Your existing logic for fetching all projects

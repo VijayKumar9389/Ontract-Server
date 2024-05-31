@@ -1,6 +1,6 @@
 // item.routes.ts
 import express, {Router, Response, Request} from 'express';
-import { upload } from '../middleware/upload';
+import upload from "../middleware/multer";
 import {ItemController} from "../controllers/item.controller";
 
 const router : Router = express.Router();

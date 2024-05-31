@@ -13,9 +13,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const project_service_1 = __importDefault(require("../services/project.service"));
-const fs_1 = __importDefault(require("fs"));
-const path_1 = __importDefault(require("path"));
 const item_service_1 = require("../services/item.service");
+const client_s3_1 = require("@aws-sdk/client-s3");
+const s3_1 = require("../middleware/s3");
 class ProjectController {
     constructor() {
         // Create a new project
@@ -49,11 +49,14 @@ class ProjectController {
             try {
                 // Fetch items associated with the project
                 const items = yield this.itemService.getItemsByProjectId(projectId);
-                // Iterate through items and delete images
+                // Iterate through items and delete images from S3
                 for (const item of items) {
                     if (item.image) {
-                        const imagePath = path_1.default.join('uploads', item.image);
-                        fs_1.default.unlinkSync(imagePath);
+                        const deleteParams = {
+                            Bucket: s3_1.bucketName, // Replace with your actual bucket name
+                            Key: item.image,
+                        };
+                        yield s3_1.s3.send(new client_s3_1.DeleteObjectCommand(deleteParams));
                     }
                 }
                 // Delete the project
@@ -65,6 +68,7 @@ class ProjectController {
                 res.status(500).json({ error: 'Internal Server Error' });
             }
         });
+        // Edit a project
         this.editProject = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const projectId = parseInt(req.params.projectId, 10);
             const projectData = req.body;
@@ -78,6 +82,7 @@ class ProjectController {
                 res.status(500).json({ error: 'Internal Server Error' });
             }
         });
+        // Get a project
         this.getProject = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const projectId = parseInt(req.params.projectId, 10);
             try {
@@ -95,6 +100,7 @@ class ProjectController {
                 res.status(500).json({ error: 'Internal Server Error' });
             }
         });
+        // Get all projects
         this.getAllProjects = (_req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
                 // Your existing logic for fetching all projects

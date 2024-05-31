@@ -105,7 +105,7 @@ class UserController {
     // Refresh the access token
     refreshAccessToken(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { refreshToken } = req.body;
+            const refreshToken = req.headers.refreshtoken;
             try {
                 if (!refreshToken) {
                     res.status(401).json({ error: 'No refresh token provided' });
@@ -128,7 +128,7 @@ class UserController {
     // Verify user session using refresh token
     verifySession(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { refreshToken } = req.body;
+            const refreshToken = req.headers.refreshtoken;
             try {
                 if (!refreshToken) {
                     res.status(401).json({ auth: false });
@@ -156,7 +156,7 @@ class UserController {
     // Verify admin status using refresh token
     verifyAdminStatus(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { refreshToken } = req.body;
+            const refreshToken = req.headers.refreshtoken;
             try {
                 if (!refreshToken) {
                     res.status(401).json({ auth: false, error: 'No refresh token provided' });
@@ -168,7 +168,7 @@ class UserController {
                     isAdmin: decodedToken.isAdmin,
                     username: decodedToken.username,
                 };
-                res.json({ auth: user.isAdmin });
+                res.json({ auth: user.isAdmin, user: user.username });
             }
             catch (error) {
                 console.error('Error verifying user session:', error);

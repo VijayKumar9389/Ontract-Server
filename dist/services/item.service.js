@@ -19,14 +19,11 @@ var __rest = (this && this.__rest) || function (s, e) {
         }
     return t;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ItemService = void 0;
 const client_1 = require("@prisma/client");
-const path_1 = __importDefault(require("path"));
-const fs_1 = __importDefault(require("fs"));
+const client_s3_1 = require("@aws-sdk/client-s3");
+const s3_1 = require("../middleware/s3");
 class ItemService {
     constructor() {
         this.prisma = new client_1.PrismaClient();
@@ -37,7 +34,7 @@ class ItemService {
             try {
                 const { projectId, image } = itemData, rest = __rest(itemData, ["projectId", "image"]);
                 return yield this.prisma.item.create({
-                    data: Object.assign(Object.assign({}, rest), { image: path_1.default.basename(image.path), projectId: Number(itemData.projectId) }),
+                    data: Object.assign(Object.assign({}, rest), { image: image, projectId: Number(itemData.projectId) }),
                 });
             }
             catch (error) {
@@ -84,7 +81,7 @@ class ItemService {
             },
         });
     }
-    //Delete Item by ID
+    // Delete Item by ID
     deleteItem(itemId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -105,9 +102,14 @@ class ItemService {
                 yield this.prisma.item.delete({
                     where: { id: itemId },
                 });
-                // Remove the associated image file from the file system
-                const imagePath = path_1.default.join('uploads', path_1.default.basename(item.image));
-                fs_1.default.unlinkSync(imagePath);
+                // If the item had an associated image, delete it from S3
+                if (item.image) {
+                    const deleteParams = {
+                        Bucket: s3_1.bucketName,
+                        Key: item.image,
+                    };
+                    yield s3_1.s3.send(new client_s3_1.DeleteObjectCommand(deleteParams));
+                }
             }
             catch (error) {
                 console.error('Error deleting item:', error);
