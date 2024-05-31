@@ -17,8 +17,21 @@ class UserController {
     async login(req: Request, res: Response): Promise<void> {
         const { username, password } = req.body;
 
+        // Check if username and password are provided
+        if (!username || !password) {
+            res.status(400).json({ error: 'Username and password are required' });
+            return;
+        }
+
         try {
             const result = await this.userService.login(username, password);
+
+            // Check if login was successful
+            if (!result) {
+                res.status(401).json({ error: 'Invalid username or password' });
+                return;
+            }
+
             res.status(200).json({
                 auth: true,
                 user: result.user,
@@ -27,7 +40,13 @@ class UserController {
             });
         } catch (error: any) {
             console.error('Error during login:', error);
-            res.status(500).json({ error: 'Failed to login' });
+
+            // Check if the error is due to incorrect credentials
+            if (error.message === 'User not found' || error.message === 'Invalid password') {
+                res.status(401).json({ error: 'Invalid username or password' });
+            } else {
+                res.status(500).json({ error: 'Failed to login' });
+            }
         }
     }
 
