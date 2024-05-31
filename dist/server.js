@@ -14,7 +14,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
-const path_1 = __importDefault(require("path"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const auth_1 = __importDefault(require("./middleware/auth"));
@@ -25,12 +24,9 @@ const delivery_route_1 = __importDefault(require("./routes/delivery.route"));
 const item_route_1 = __importDefault(require("./routes/item.route"));
 const stakeholder_route_1 = __importDefault(require("./routes/stakeholder.route"));
 const tract_record_route_1 = __importDefault(require("./routes/tract-record.route"));
-const client_1 = require("@prisma/client");
 const s3_1 = require("./middleware/s3");
 const client_s3_1 = require("@aws-sdk/client-s3");
 const s3_request_presigner_1 = require("@aws-sdk/s3-request-presigner");
-// Initialize Prisma
-const prisma = new client_1.PrismaClient();
 // Load environment variables from .env file
 dotenv_1.default.config();
 // Create a new express application instance
@@ -52,12 +48,7 @@ app.use((0, cookie_parser_1.default)());
 app.get('/', (req, res) => {
     res.send('Hello, TypeScript Express!');
 });
-// route to serve images
-app.get('/images/:name', (req, res) => {
-    const { name } = req.params;
-    const imagePath = path_1.default.join(__dirname, `../uploads/${name}`);
-    res.sendFile(imagePath);
-});
+// route to serve images from S3
 app.get('/api/images/:name', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name } = req.params;
     console.log(name);
@@ -73,16 +64,6 @@ app.get('/api/images/:name', (req, res) => __awaiter(void 0, void 0, void 0, fun
     catch (error) {
         console.error('Error generating signed URL:', error);
         res.status(500).json({ error: 'Failed to generate signed URL' });
-    }
-}));
-// Route to check Prisma connection
-app.get('/check-prisma', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        yield prisma.$queryRaw `SELECT 1`;
-        res.status(200).send('Prisma connection is successful!');
-    }
-    catch (error) {
-        res.status(500).send('Failed to connect to Prisma');
     }
 }));
 // api routes

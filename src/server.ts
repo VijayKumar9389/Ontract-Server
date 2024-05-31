@@ -1,6 +1,5 @@
 import express, { Express, Response, Request } from 'express';
 import cors from 'cors';
-import path from "path";
 import dotenv from 'dotenv';
 import cookieParser from "cookie-parser";
 import validateToken from "./middleware/auth";
@@ -11,13 +10,9 @@ import deliveryRoute from "./routes/delivery.route";
 import itemRoutes from "./routes/item.route";
 import stakeholderRoutes from "./routes/stakeholder.route";
 import tractRecordRoute from "./routes/tract-record.route";
-import { PrismaClient } from '@prisma/client';
 import {bucketName, s3} from "./middleware/s3";
 import {GetObjectCommand} from "@aws-sdk/client-s3";
 import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
-
-// Initialize Prisma
-const prisma = new PrismaClient();
 
 // Load environment variables from .env file
 dotenv.config();
@@ -28,7 +23,7 @@ const port: number = parseInt(process.env.PORT || '8080', 10);
 
 // enable cors
 app.use(cors({
-    origin: [process.env.ORIGIN, process.env.ORIGIN_WWW], // Array of allowed origins
+    origin: [process.env.ORIGIN!, process.env.ORIGIN_WWW!], // Array of allowed origins
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'accessToken', 'refreshToken'], // Include 'accessToken' header here
@@ -45,13 +40,7 @@ app.get('/', (req: Request, res: Response): void => {
     res.send('Hello, TypeScript Express!');
 });
 
-// route to serve images
-app.get('/images/:name', (req: Request, res: Response): void => {
-    const { name } = req.params;
-    const imagePath: string = path.join(__dirname, `../uploads/${name}`);
-    res.sendFile(imagePath);
-});
-
+// route to serve images from S3
 app.get('/api/images/:name', async (req: Request, res: Response,): Promise<void> => {
     const { name } = req.params;
 
@@ -69,16 +58,6 @@ app.get('/api/images/:name', async (req: Request, res: Response,): Promise<void>
     } catch (error) {
         console.error('Error generating signed URL:', error);
         res.status(500).json({ error: 'Failed to generate signed URL' });
-    }
-});
-
-// Route to check Prisma connection
-app.get('/check-prisma', async (req: Request, res: Response): Promise<void> => {
-    try {
-        await prisma.$queryRaw`SELECT 1`;
-        res.status(200).send('Prisma connection is successful!');
-    } catch (error) {
-        res.status(500).send('Failed to connect to Prisma');
     }
 });
 
