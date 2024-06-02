@@ -92,6 +92,19 @@ class UserService {
             }
         });
     }
+    // Delete a user
+    deleteUser(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield this.prisma.user.delete({
+                    where: { id },
+                });
+            }
+            catch (error) {
+                throw new Error(error.message);
+            }
+        });
+    }
     //Edit a user
     editUser(id, username, password) {
         return __awaiter(this, void 0, void 0, function* () {

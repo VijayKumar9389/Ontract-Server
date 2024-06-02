@@ -29,6 +29,10 @@ router.post('/register', (0, auth_1.default)(false), (req, res) => __awaiter(voi
 router.post('/edit', (0, auth_1.default)(false), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     yield userController.editUser(req, res);
 }));
+// Delete User
+router.delete('/delete/:id', (0, auth_1.default)(false), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    yield userController.deleteUser(req, res);
+}));
 // Get all users
 router.get('/getAll', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     yield userController.getUsers(req, res);

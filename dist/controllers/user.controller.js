@@ -90,6 +90,23 @@ class UserController {
             }
         });
     }
+    // Delete user
+    deleteUser(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const id = parseInt(req.params.id);
+                if (!id) {
+                    throw new Error('Invalid user ID');
+                }
+                const deletedUser = yield this.userService.deleteUser(id);
+                res.status(200).json(deletedUser);
+            }
+            catch (error) {
+                console.error('Error deleting user:', error);
+                res.status(500).json({ error: 'Failed to delete user' });
+            }
+        });
+    }
     // Register User
     register(req, res) {
         return __awaiter(this, void 0, void 0, function* () {

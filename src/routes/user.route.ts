@@ -20,6 +20,11 @@ router.post('/edit', validateToken(false), async (req: Request, res: Response): 
     await userController.editUser(req, res);
 });
 
+// Delete User
+router.delete('/delete/:id', validateToken(false), async (req: Request, res: Response): Promise<void> => {
+    await userController.deleteUser(req, res);
+});
+
 // Get all users
 router.get('/getAll', async (req: Request, res: Response): Promise<void> => {
     await userController.getUsers(req, res);

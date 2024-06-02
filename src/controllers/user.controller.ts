@@ -61,6 +61,21 @@ class UserController {
         }
     }
 
+    // Delete user
+    async deleteUser(req: Request, res: Response): Promise<void> {
+        try {
+            const id: number = parseInt(req.params.id);
+            if (!id) {
+                throw new Error('Invalid user ID');
+            }
+            const deletedUser: User = await this.userService.deleteUser(id);
+            res.status(200).json(deletedUser);
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            res.status(500).json({ error: 'Failed to delete user' });
+        }
+    }
+
     // Register User
     async register(req: Request, res: Response): Promise<void> {
         try {

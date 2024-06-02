@@ -95,6 +95,17 @@ class UserService {
         }
     }
 
+    // Delete a user
+    async deleteUser(id: number): Promise<User> {
+        try {
+            return await this.prisma.user.delete({
+                where: {id},
+            });
+        } catch (error: any) {
+            throw new Error(error.message);
+        }
+    }
+
     //Edit a user
     async editUser(id: number, username: string, password: string): Promise<User> {
         try {
