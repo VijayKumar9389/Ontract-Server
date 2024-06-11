@@ -14,7 +14,6 @@ export class ItemController {
         this.itemService = new ItemService();
     }
 
-    // Create a new item
     async createItem(req: Request, res: Response): Promise<void> {
         try {
             // Get request body
@@ -27,13 +26,19 @@ export class ItemController {
                 return;
             }
 
+            // Determine the environment
+            const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+
             // Generate a unique filename for the S3 object
             const randomName: string = uuidv4();
+
+            // Create a key with the environment folder
+            const key: string = `${environment}/${randomName}`;
 
             // Upload image to S3
             const uploadParams = {
                 Bucket: bucketName,
-                Key: randomName,
+                Key: key,
                 Body: imageFile.buffer,
                 ContentType: imageFile.mimetype,
             };
@@ -76,23 +81,34 @@ export class ItemController {
                 return;
             }
 
+            // Determine the environment
+            const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+
             // Validate request body
             if (imageFile) {
+
                 // Upload the new image to S3
                 const randomName: string = uuidv4();
+
+                // Create a key with the environment folder
+                const newKey = `${environment}/${randomName}`;
+
                 const uploadParams = {
                     Bucket: bucketName,
-                    Key: randomName,
+                    Key: newKey,
                     Body: imageFile.buffer,
                     ContentType: imageFile.mimetype,
                 };
+
                 await s3.send(new PutObjectCommand(uploadParams));
+
+                const deletekey = `${environment}/${currentItem.image}`;
 
                 // Remove the current image file from S3 if it exists
                 if (currentItem.image) {
                     const deleteParams = {
                         Bucket: bucketName,
-                        Key: currentItem.image,
+                        Key: deletekey,
                     };
                     await s3.send(new DeleteObjectCommand(deleteParams));
                 }

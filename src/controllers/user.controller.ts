@@ -5,7 +5,6 @@ import {User} from "@prisma/client";
 import jwt, {TokenExpiredError} from "jsonwebtoken";
 
 class UserController {
-
     private userService: UserService;
 
     // Initialize the user service

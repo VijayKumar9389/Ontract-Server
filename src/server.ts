@@ -1,4 +1,4 @@
-import express, { Express, Response, Request } from 'express';
+import express, {Express, Response, Request} from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from "cookie-parser";
@@ -23,16 +23,15 @@ const port: number = parseInt(process.env.PORT || '8080', 10);
 
 // enable cors
 app.use(cors({
-    origin: [process.env.ORIGIN!, process.env.ORIGIN_WWW!], // Array of allowed origins
+    origin: [process.env.ORIGIN!, process.env.ORIGIN_WWW!],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'accessToken', 'refreshToken'], // Include 'accessToken' header here
-    exposedHeaders: ['Authorization'],
+    allowedHeaders: ['Content-Type', 'accessToken', 'refreshToken'], // Include 'accessToken' header here
 }));
 
 // allow express to parse json and x-www-form-urlencoded request bodies
 app.use(express.json({limit: '50mb'}));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({extended: true}));
 app.use(cookieParser());
 
 // define a route handler for the default home page
@@ -40,20 +39,24 @@ app.get('/', (req: Request, res: Response): void => {
     res.send('Hello, TypeScript Express!');
 });
 
-// route to serve images from S3
-app.get('/api/images/:name', async (req: Request, res: Response,): Promise<void> => {
+// define a route handler for the images endpoint
+app.get('/api/images/:name', async (req: Request, res: Response): Promise<void> => {
     const { name } = req.params;
 
-    console.log(name)
+    // Determine the environment
+    const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
 
-    const params = {
+    // Create a key with the environment folder
+    const key = `${environment}/${name}`;
+
+    const params: { Bucket: string, Key: string } = {
         Bucket: bucketName!,
-        Key: name,
+        Key: key,
     };
 
     try {
-        const command = new GetObjectCommand(params);
-        const signedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 }); // URL expires in 1 hour
+        const command: GetObjectCommand = new GetObjectCommand(params);
+        const signedUrl: string = await getSignedUrl(s3, command, { expiresIn: 3600 }); // URL expires in 1 hour
         res.json({ url: signedUrl });
     } catch (error) {
         console.error('Error generating signed URL:', error);
@@ -64,11 +67,11 @@ app.get('/api/images/:name', async (req: Request, res: Response,): Promise<void>
 // api routes
 app.use('/user', userRoutes);
 app.use('/project', validateToken(false), projectRoutes);
-app.use('/delivery',  validateToken(false), deliveryRoute);
+app.use('/delivery', validateToken(false), deliveryRoute);
 app.use('/package', validateToken(false), packageRoute);
 app.use('/item', validateToken(false), itemRoutes);
 app.use('/stakeholder', validateToken(false), stakeholderRoutes);
-app.use('/tract-record', validateToken(false),  tractRecordRoute);
+app.use('/tract-record', validateToken(false), tractRecordRoute);
 
 // start the express server
 app.listen(port, (): void => {
