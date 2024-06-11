@@ -104,9 +104,13 @@ class ItemService {
                 });
                 // If the item had an associated image, delete it from S3
                 if (item.image) {
+                    // Determine the environment
+                    const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+                    // Create the S3 key with the environment folder
+                    const deleteKey = `${environment}/${item.image}`;
                     const deleteParams = {
                         Bucket: s3_1.bucketName,
-                        Key: item.image,
+                        Key: deleteKey,
                     };
                     yield s3_1.s3.send(new client_s3_1.DeleteObjectCommand(deleteParams));
                 }

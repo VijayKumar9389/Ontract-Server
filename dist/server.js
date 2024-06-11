@@ -34,11 +34,10 @@ const app = (0, express_1.default)();
 const port = parseInt(process.env.PORT || '8080', 10);
 // enable cors
 app.use((0, cors_1.default)({
-    origin: [process.env.ORIGIN, process.env.ORIGIN_WWW], // Array of allowed origins
+    origin: [process.env.ORIGIN, process.env.ORIGIN_WWW],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'accessToken', 'refreshToken'], // Include 'accessToken' header here
-    exposedHeaders: ['Authorization'],
+    allowedHeaders: ['Content-Type', 'accessToken', 'refreshToken'], // Include 'accessToken' header here
 }));
 // allow express to parse json and x-www-form-urlencoded request bodies
 app.use(express_1.default.json({ limit: '50mb' }));
@@ -48,13 +47,16 @@ app.use((0, cookie_parser_1.default)());
 app.get('/', (req, res) => {
     res.send('Hello, TypeScript Express!');
 });
-// route to serve images from S3
+// define a route handler for the images endpoint
 app.get('/api/images/:name', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name } = req.params;
-    console.log(name);
+    // Determine the environment
+    const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
+    // Create a key with the environment folder
+    const key = `${environment}/${name}`;
     const params = {
         Bucket: s3_1.bucketName,
-        Key: name,
+        Key: key,
     };
     try {
         const command = new client_s3_1.GetObjectCommand(params);

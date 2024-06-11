@@ -18,7 +18,6 @@ class ItemController {
     constructor() {
         this.itemService = new item_service_1.ItemService();
     }
-    // Create a new item
     createItem(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -30,12 +29,16 @@ class ItemController {
                     res.status(400).json({ message: 'Image file is required' });
                     return;
                 }
+                // Determine the environment
+                const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
                 // Generate a unique filename for the S3 object
                 const randomName = (0, uuid_1.v4)();
+                // Create a key with the environment folder
+                const key = `${environment}/${randomName}`;
                 // Upload image to S3
                 const uploadParams = {
                     Bucket: s3_1.bucketName,
-                    Key: randomName,
+                    Key: key,
                     Body: imageFile.buffer,
                     ContentType: imageFile.mimetype,
                 };
@@ -73,22 +76,27 @@ class ItemController {
                     res.status(404).json({ message: 'Item not found' });
                     return;
                 }
+                // Determine the environment
+                const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
                 // Validate request body
                 if (imageFile) {
                     // Upload the new image to S3
                     const randomName = (0, uuid_1.v4)();
+                    // Create a key with the environment folder
+                    const newKey = `${environment}/${randomName}`;
                     const uploadParams = {
                         Bucket: s3_1.bucketName,
-                        Key: randomName,
+                        Key: newKey,
                         Body: imageFile.buffer,
                         ContentType: imageFile.mimetype,
                     };
                     yield s3_1.s3.send(new client_s3_1.PutObjectCommand(uploadParams));
+                    const deletekey = `${environment}/${currentItem.image}`;
                     // Remove the current image file from S3 if it exists
                     if (currentItem.image) {
                         const deleteParams = {
                             Bucket: s3_1.bucketName,
-                            Key: currentItem.image,
+                            Key: deletekey,
                         };
                         yield s3_1.s3.send(new client_s3_1.DeleteObjectCommand(deleteParams));
                     }

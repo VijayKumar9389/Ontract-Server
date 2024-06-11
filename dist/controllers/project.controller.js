@@ -49,12 +49,15 @@ class ProjectController {
             try {
                 // Fetch items associated with the project
                 const items = yield this.itemService.getItemsByProjectId(projectId);
+                // Determine the environment
+                const environment = process.env.NODE_ENV === 'production' ? 'production' : 'development';
                 // Iterate through items and delete images from S3
                 for (const item of items) {
                     if (item.image) {
+                        const deleteKey = `${environment}/${item.image}`;
                         const deleteParams = {
                             Bucket: s3_1.bucketName, // Replace with your actual bucket name
-                            Key: item.image,
+                            Key: deleteKey,
                         };
                         yield s3_1.s3.send(new client_s3_1.DeleteObjectCommand(deleteParams));
                     }
