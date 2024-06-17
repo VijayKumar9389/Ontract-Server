@@ -110,6 +110,21 @@ class DeliveryController {
             }
         });
     }
+    // Undo Completed delivery by ID
+    undoCompletedDelivery(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const deliveryId = parseInt(req.params.deliveryId, 10);
+                yield this.deliveryService.undoCompletedDelivery(deliveryId);
+                yield this.stakeholderService.updateStakeholderConsultationByDeliveryId(deliveryId, '');
+                res.status(204).json();
+            }
+            catch (error) {
+                console.error('Error in undoCompletedDelivery:', error);
+                res.status(500).json({ error: 'Internal Server Error' });
+            }
+        });
+    }
     // Get deliveries report
     getDeliveriesReport(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -148,8 +163,9 @@ class DeliveryController {
                 // Count of deliveries with status "pending" or "completed"
                 const pendingDeliveryCount = deliveriesReport.filter((delivery) => !delivery.completed).length;
                 const completedDeliveryCount = deliveriesReport.filter((delivery) => delivery.completed).length;
-                const deliveryCount = deliveriesReport.filter((delivery) => delivery.delivery_method === 'person').length;
                 const mailCount = deliveriesReport.filter((delivery) => delivery.delivery_method === 'mail').length;
+                const streetCount = deliveriesReport.filter((delivery) => delivery.delivery_method === 'person').length;
+                const noRouteCount = deliveriesReport.filter((delivery) => !delivery.route).length;
                 // Return the report
                 res.status(200).json({
                     count,
@@ -158,12 +174,29 @@ class DeliveryController {
                     deliveryRouteCountMap,
                     pendingDeliveryCount,
                     completedDeliveryCount,
-                    deliveryCount,
+                    noRouteCount,
+                    streetCount,
                     mailCount
                 });
             }
             catch (error) {
                 console.error('Error in getDeliveriesReport:', error);
+                res.status(500).json({ error: 'Internal Server Error' });
+            }
+        });
+    }
+    //Get deliveries by project Id
+    getDeliveryRoutes(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const projectId = parseInt(req.params.projectId, 10);
+                const deliveries = yield this.deliveryService.getDeliveriesByProjectId(projectId);
+                const routes = deliveries.map(delivery => delivery.route);
+                const uniqueRoutes = [...new Set(routes)];
+                res.status(200).json(uniqueRoutes);
+            }
+            catch (error) {
+                console.error('Error in getDeliveriesByProjectId:', error);
                 res.status(500).json({ error: 'Internal Server Error' });
             }
         });

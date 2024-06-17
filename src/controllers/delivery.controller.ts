@@ -90,6 +90,19 @@ export class DeliveryController {
         }
     }
 
+    // Undo Completed delivery by ID
+    async undoCompletedDelivery(req: Request, res: Response): Promise<void> {
+        try {
+            const deliveryId: number = parseInt(req.params.deliveryId, 10);
+            await this.deliveryService.undoCompletedDelivery(deliveryId);
+            await this.stakeholderService.updateStakeholderConsultationByDeliveryId(deliveryId, '');
+            res.status(204).json();
+        } catch (error) {
+            console.error('Error in undoCompletedDelivery:', error);
+            res.status(500).json({error: 'Internal Server Error'});
+        }
+    }
+
     // Get deliveries report
     async getDeliveriesReport(req: Request, res: Response): Promise<void> {
         const projectId: number = parseInt(req.params.projectId, 10);
@@ -135,9 +148,9 @@ export class DeliveryController {
             // Count of deliveries with status "pending" or "completed"
             const pendingDeliveryCount = deliveriesReport.filter((delivery) => !delivery.completed).length;
             const completedDeliveryCount = deliveriesReport.filter((delivery) => delivery.completed).length;
-            const deliveryCount = deliveriesReport.filter((delivery) => delivery.delivery_method === 'person').length
-            const mailCount = deliveriesReport.filter((delivery) => delivery.delivery_method === 'mail').length
-
+            const mailCount = deliveriesReport.filter((delivery) => delivery.delivery_method === 'mail').length;
+            const streetCount = deliveriesReport.filter((delivery) => delivery.delivery_method === 'person').length;
+            const noRouteCount = deliveriesReport.filter((delivery) => !delivery.route).length;
 
             // Return the report
             res.status(200).json({
@@ -147,11 +160,26 @@ export class DeliveryController {
                 deliveryRouteCountMap,
                 pendingDeliveryCount,
                 completedDeliveryCount,
-                deliveryCount,
+                noRouteCount,
+                streetCount,
                 mailCount
             });
         } catch (error) {
             console.error('Error in getDeliveriesReport:', error);
+            res.status(500).json({error: 'Internal Server Error'});
+        }
+    }
+
+    //Get deliveries by project Id
+    async getDeliveryRoutes(req: Request, res: Response): Promise<void> {
+        try {
+            const projectId: number = parseInt(req.params.projectId, 10);
+            const deliveries: Delivery[] = await this.deliveryService.getDeliveriesByProjectId(projectId);
+            const routes: string[] = deliveries.map(delivery => delivery.route);
+            const uniqueRoutes: string[] = [...new Set(routes)];
+            res.status(200).json(uniqueRoutes);
+        } catch (error) {
+            console.error('Error in getDeliveriesByProjectId:', error);
             res.status(500).json({error: 'Internal Server Error'});
         }
     }

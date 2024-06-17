@@ -77,6 +77,7 @@ class DeliveryService {
             }
         });
     }
+    // Set delivery as completed
     setCompletedDelivery(deliveryId, date) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -91,6 +92,25 @@ class DeliveryService {
             }
             catch (error) {
                 console.error('Error setting delivery completed:', error);
+                return null;
+            }
+        });
+    }
+    // Undo delivery completion
+    undoCompletedDelivery(deliveryId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const updatedDelivery = yield this.prisma.delivery.update({
+                    where: { id: deliveryId },
+                    data: {
+                        completed: false,
+                        date: null,
+                    },
+                });
+                return this.fetchDeliveryWithPackages(deliveryId);
+            }
+            catch (error) {
+                console.error('Error undoing delivery completion:', error);
                 return null;
             }
         });

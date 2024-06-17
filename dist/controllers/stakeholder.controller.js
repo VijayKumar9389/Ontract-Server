@@ -134,6 +134,7 @@ class StakeholderController {
                 const stakeholders = yield this.stakeholderService.getStakeholdersByProjectId(projectId);
                 // Total count of stakeholders
                 const totalCount = stakeholders.length;
+                const totalTractCount = stakeholders.reduce((acc, stakeholder) => acc + stakeholder.tractRecords.length, 0);
                 // Count of stakeholders with one tractRecord
                 const oneTractCount = stakeholders.filter(stakeholder => stakeholder.tractRecords.length === 1).length;
                 // Count of stakeholders with more than one tractRecord
@@ -144,6 +145,9 @@ class StakeholderController {
                 const contactedNoCount = stakeholders.filter(stakeholder => stakeholder.contacted !== 'YES').length;
                 // Count of stakeholders with attempted contact
                 const attemptedContactCount = stakeholders.filter(stakeholder => stakeholder.attempts !== '').length;
+                // stakeholders with "Her MAJESTY" in their name Count the number of tracts
+                const herMajestyCount = stakeholders.filter(stakeholder => stakeholder.name.includes('HER MAJESTY')).length;
+                const herMajestyTractCount = stakeholders.filter(stakeholder => stakeholder.name.includes('HER MAJESTY')).reduce((acc, stakeholder) => acc + stakeholder.tractRecords.length, 0);
                 // Count of stakeholders with no attempted contact
                 const notAttemptedContactCount = stakeholders.filter(stakeholder => stakeholder.attempts === '').length;
                 // Count of stakeholders with missing phone numbers
@@ -166,6 +170,9 @@ class StakeholderController {
                     missingPhoneNumbers,
                     contactedYesCount,
                     contactedNoCount,
+                    herMajestyCount,
+                    herMajestyTractCount,
+                    totalTractCount
                 };
                 res.status(200).json(summary);
             }

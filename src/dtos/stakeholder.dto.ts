@@ -32,5 +32,8 @@ export interface StakeholderSummaryDto {
     missingPhoneNumbers: number;
     contactedYesCount: number;
     contactedNoCount: number;
+    herMajestyCount: number;
+    herMajestyTractCount: number;
+    totalTractCount: number;
 }
 

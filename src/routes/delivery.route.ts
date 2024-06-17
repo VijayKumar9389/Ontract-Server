@@ -20,6 +20,11 @@ router.put('/complete/:deliveryId', (req: Request, res: Response) =>
     deliveryController.setCompletedDelivery(req, res)
 );
 
+// Undo Completed delivery by ID
+router.put('/undo/:deliveryId', (req: Request, res: Response) =>
+    deliveryController.undoCompletedDelivery(req, res)
+);
+
 // Get deliveries by projectId
 router.get('/getbyproject/:projectId', (req: Request, res: Response) =>
     deliveryController.getDeliveriesByProjectId(req, res)
@@ -41,6 +46,11 @@ router.get('/report/:projectId', (req: Request, res: Response) =>
 
 router.delete('/cancel/:deliveryId', (req: Request, res: Response) =>
     deliveryController.cancelDelivery(req, res)
+);
+
+// get all unique delivery routes for a project
+router.get('/routes/:projectId', (req: Request, res: Response) =>
+    deliveryController.getDeliveryRoutes(req, res)
 );
 
 export default router;

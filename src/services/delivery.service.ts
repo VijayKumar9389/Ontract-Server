@@ -77,6 +77,7 @@ class DeliveryService {
         }
     }
 
+    // Set delivery as completed
     async setCompletedDelivery(deliveryId: number, date: string): Promise<Delivery | null> {
         try {
             const updatedDelivery: Delivery = await this.prisma.delivery.update({
@@ -89,6 +90,23 @@ class DeliveryService {
             return this.fetchDeliveryWithPackages(deliveryId);
         } catch (error) {
             console.error('Error setting delivery completed:', error);
+            return null;
+        }
+    }
+
+    // Undo delivery completion
+    async undoCompletedDelivery(deliveryId: number): Promise<Delivery | null> {
+        try {
+            const updatedDelivery: Delivery = await this.prisma.delivery.update({
+                where: { id: deliveryId },
+                data: {
+                    completed: false,
+                    date: null,
+                },
+            });
+            return this.fetchDeliveryWithPackages(deliveryId);
+        } catch (error) {
+            console.error('Error undoing delivery completion:', error);
             return null;
         }
     }
