@@ -103,6 +103,7 @@ class PackageController {
             }
         });
     }
+    // Get all package types
     getAllPackageTypes(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -120,6 +121,7 @@ class PackageController {
             }
         });
     }
+    // Get packages by package type ID
     getPackageByPackageTypeId(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -148,6 +150,7 @@ class PackageController {
             }
         });
     }
+    // Get package by package item ID
     getPackageByPackageItemId(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             console.log('Received package item ID:', req.params.packageItemId);
@@ -163,6 +166,7 @@ class PackageController {
             }
         });
     }
+    // Delete a package type
     deletePackageType(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

@@ -104,9 +104,9 @@ class TractRecordController {
                             consultation: stakeholder.consultation,
                             followUp: stakeholder.followUp,
                             tractComments: tractRecord.tractComments,
+                            email: stakeholder.email,
                             pageNo: tractRecord.pageNumber,
                             keepDelete: tractRecord.keepdelete,
-                            email: stakeholder.email,
                             Commodity: tractRecord.commodity,
                             pipelineStatus: tractRecord.pipelineStatus
                         });
@@ -132,9 +132,9 @@ class TractRecordController {
                     consultation: input.consultation,
                     followUp: input.followUp,
                     tractComments: input.tractComments,
+                    email: input.email,
                     pageNo: input.pageNo,
                     keepDelete: input.keepDelete,
-                    email: input.email,
                     Commodity: input.Commodity,
                     pipelineStatus: input.pipelineStatus
                 }));

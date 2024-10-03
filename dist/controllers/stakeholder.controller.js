@@ -184,14 +184,19 @@ class StakeholderController {
     }
     getAllLocations(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            // Extract projectId from request parameters
             const projectId = parseInt(req.params.projectId, 10);
             try {
+                // Retrieve stakeholders associated with the project
                 const stakeholders = yield this.stakeholderService.getStakeholdersByProjectId(projectId);
+                // Initialize lists and variables for tracking data
                 const provinceList = [];
                 const locationList = [];
                 let missing = 0;
+                // Iterate over each stakeholder to categorize based on address completeness
                 for (const stakeholder of stakeholders) {
                     const { mailingAddress, streetAddress } = stakeholder;
+                    // Count stakeholders with incomplete addresses
                     if (!mailingAddress && !streetAddress) {
                         missing++;
                     }
@@ -199,28 +204,35 @@ class StakeholderController {
                         missing++;
                     }
                 }
+                // Add a record for missing addresses to the location list
                 locationList.push({ locations: [{ province: 'MISSING', count: missing, cities: [] }] });
+                // Extract unique provinces from stakeholders with mailing addresses
                 for (const stakeholder of stakeholders) {
                     const { mailingAddress } = stakeholder;
                     if (mailingAddress) {
                         const location = mailingAddress.split(',');
+                        // Check if province exists and add it to the list if not already included
                         if (location.length > 2 && !provinceList.includes(location[location.length - 2])) {
                             provinceList.push(location[location.length - 2]);
                         }
                     }
                 }
+                // Iterate over each province to collect city-level data
                 for (const province of provinceList) {
                     const cityList = [];
                     let provinceCount = 0;
+                    // Count stakeholders within each province and their respective cities
                     for (const stakeholder of stakeholders) {
                         const { mailingAddress } = stakeholder;
                         if (mailingAddress) {
                             const location = mailingAddress.split(',');
                             const city = location[location.length - 3];
                             const stakeholderProvince = location[location.length - 2];
+                            // Aggregate counts for stakeholders within the current province
                             if (stakeholderProvince === province) {
                                 provinceCount++;
                                 let cityCount = 0;
+                                // Count stakeholders per city within the province
                                 if (!cityList.some((cityObj) => cityObj.name === city)) {
                                     for (const tmpStakeholder of stakeholders) {
                                         const tmpLocation = tmpStakeholder.mailingAddress.split(',');
@@ -233,11 +245,14 @@ class StakeholderController {
                             }
                         }
                     }
+                    // Add province-level data to the location list
                     locationList.push({ locations: [{ province, count: provinceCount, cities: cityList }] });
                 }
+                // Send JSON response containing the processed location data
                 res.json(locationList);
             }
             catch (error) {
+                // Handle errors if any during stakeholder retrieval or data processing
                 console.error('Error fetching stakeholders:', error);
                 res.status(500).json({ error: 'Failed to fetch stakeholders' });
             }

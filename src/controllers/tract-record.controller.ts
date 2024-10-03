@@ -92,7 +92,7 @@ class TractRecordController {
             // Sort the unnormalized data by position in ascending order
             unnormalizedData.sort((a, b) => a.position - b.position);
 
-            // Convert the sorted data to ProjectRecordOutputDTO
+            // Convert the sorted data to ProjectRecordOutputDTOs
             const normalizedData: ProjectRecordOutputDTO[] = unnormalizedData.map(input => ({
                 tract: input.tract,
                 pin: input.pin,
