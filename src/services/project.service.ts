@@ -139,6 +139,7 @@ class ProjectService {
         try {
             // Create a map of stakeholders to tract records
             const stakeholdersMap: Map<string, StakeholderInputDTO> = this.createStakeholdersMap(projectRecords);
+
             // Create unique stakeholders and tract records
             await this.createUniqueStakeholders(projectId, stakeholdersMap);
         } catch (error) {
