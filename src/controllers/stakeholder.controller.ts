@@ -2,29 +2,7 @@ import {Request, Response} from 'express';
 import {Stakeholder} from '@prisma/client';
 import {StakeholderService} from '../services/stakeholder.service';
 import {StakeholderSummaryDto, StakeholderUpdateDTO, StakeholderWithTractRecords} from "../dtos/stakeholder.dto";
-
-interface RelatedStakeholder {
-    stakeholder: StakeholderWithTractRecords; // Assuming StakeholderWithTractRecords is your existing interface or type
-    isPhoneSame: boolean;
-    isMailingAddressSame: boolean;
-    isStreetAddressSame: boolean;
-}
-
-interface Location {
-    province: string;
-    count: number;
-    cities: City[];
-}
-
-interface City {
-    name: string;
-    count: number;
-}
-
-export interface LocationData {
-    locations: Location[];
-}
-
+import {LocationData, RelatedStakeholder} from "../dtos/report.dtos";
 
 class StakeholderController {
     private stakeholderService: StakeholderService;
@@ -81,8 +59,8 @@ class StakeholderController {
                 )
                 // Map stakeholders to include additional information such as whether their phone numbers match
                 .map((stakeholder) => {
-                    const isMailingAddressSame = stakeholder.mailingAddress === selectedStakeholder.mailingAddress;
-                    const isStreetAddressSame = stakeholder.streetAddress === selectedStakeholder.streetAddress;
+                    const isMailingAddressSame: boolean = stakeholder.mailingAddress === selectedStakeholder.mailingAddress;
+                    const isStreetAddressSame: boolean = stakeholder.streetAddress === selectedStakeholder.streetAddress;
                     // Check if any of the selected stakeholder's phone numbers match any of the current stakeholder's phone numbers
                     const isPhoneSame: boolean = selectedStakeholder.phoneNumber.split(',').some(selectedClientPhone => {
                         const selectedClientPhoneType = selectedClientPhone.split(':')[0];
@@ -217,18 +195,23 @@ class StakeholderController {
     }
 
     async getAllLocations(req: Request, res: Response): Promise<void> {
+        // Extract projectId from request parameters
         const projectId: number = parseInt(req.params.projectId, 10);
 
         try {
+            // Retrieve stakeholders associated with the project
             const stakeholders: Stakeholder[] = await this.stakeholderService.getStakeholdersByProjectId(projectId);
 
+            // Initialize lists and variables for tracking data
             const provinceList: string[] = [];
             const locationList: LocationData[] = [];
             let missing = 0;
 
+            // Iterate over each stakeholder to categorize based on address completeness
             for (const stakeholder of stakeholders) {
                 const { mailingAddress, streetAddress } = stakeholder;
 
+                // Count stakeholders with incomplete addresses
                 if (!mailingAddress && !streetAddress) {
                     missing++;
                 } else if (mailingAddress.split(',').length < 3) {
@@ -236,23 +219,28 @@ class StakeholderController {
                 }
             }
 
+            // Add a record for missing addresses to the location list
             locationList.push({ locations: [{ province: 'MISSING', count: missing, cities: [] }] });
 
+            // Extract unique provinces from stakeholders with mailing addresses
             for (const stakeholder of stakeholders) {
                 const { mailingAddress } = stakeholder;
 
                 if (mailingAddress) {
                     const location = mailingAddress.split(',');
+                    // Check if province exists and add it to the list if not already included
                     if (location.length > 2 && !provinceList.includes(location[location.length - 2])) {
                         provinceList.push(location[location.length - 2]);
                     }
                 }
             }
 
+            // Iterate over each province to collect city-level data
             for (const province of provinceList) {
                 const cityList: { name: string; count: number }[] = [];
                 let provinceCount = 0;
 
+                // Count stakeholders within each province and their respective cities
                 for (const stakeholder of stakeholders) {
                     const { mailingAddress } = stakeholder;
 
@@ -261,10 +249,12 @@ class StakeholderController {
                         const city = location[location.length - 3];
                         const stakeholderProvince = location[location.length - 2];
 
+                        // Aggregate counts for stakeholders within the current province
                         if (stakeholderProvince === province) {
                             provinceCount++;
                             let cityCount = 0;
 
+                            // Count stakeholders per city within the province
                             if (!cityList.some((cityObj) => cityObj.name === city)) {
                                 for (const tmpStakeholder of stakeholders) {
                                     const tmpLocation = tmpStakeholder.mailingAddress.split(',');
@@ -278,16 +268,18 @@ class StakeholderController {
                     }
                 }
 
+                // Add province-level data to the location list
                 locationList.push({ locations: [{ province, count: provinceCount, cities: cityList }] });
             }
 
+            // Send JSON response containing the processed location data
             res.json(locationList);
         } catch (error) {
+            // Handle errors if any during stakeholder retrieval or data processing
             console.error('Error fetching stakeholders:', error);
             res.status(500).json({ error: 'Failed to fetch stakeholders' });
         }
     }
-
 }
 
 export default StakeholderController;

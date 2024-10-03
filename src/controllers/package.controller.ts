@@ -94,6 +94,7 @@ export class PackageController {
     }
 
 
+    // Get all package types
     async getAllPackageTypes(req: Request, res: Response): Promise<void> {
         try {
             // Extract projectId from request parameters
@@ -111,6 +112,7 @@ export class PackageController {
         }
     }
 
+    // Get packages by package type ID
     async getPackageByPackageTypeId(req: Request, res: Response): Promise<void> {
         try {
             const { packageTypeId } = req.params;
@@ -135,6 +137,7 @@ export class PackageController {
         }
     }
 
+    // Get package by package item ID
     async getPackageByPackageItemId(req: Request, res: Response): Promise<void> {
         console.log('Received package item ID:', req.params.packageItemId);
         try {
@@ -148,6 +151,7 @@ export class PackageController {
         }
     }
 
+    // Delete a package type
     async deletePackageType(req: Request, res: Response): Promise<void> {
         try {
             const id: number = parseInt(req.params.packageTypeId, 10);
@@ -160,5 +164,4 @@ export class PackageController {
             res.status(500).json({ error: 'Internal Server Error' });
         }
     }
-
 }

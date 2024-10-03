@@ -31,7 +31,6 @@ class ProjectController {
             } else if (!projectInput.projectRecords || projectInput.projectRecords.length === 0) {
                 res.status(400).json({ error: 'Project records are required' });
                 return;
-
             }
 
             // Create a new project using the project service
