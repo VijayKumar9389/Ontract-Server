@@ -36,7 +36,7 @@ app.use(cookieParser());
 
 // define a route handler for the default home page
 app.get('/', (req: Request, res: Response): void => {
-    res.send('Hello, TypeScript Express!');
+    res.send('Hello, TypeScript Express! And Updates!!');
 });
 
 // define a route handler for the images endpoint
