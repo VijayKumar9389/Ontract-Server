@@ -4,9 +4,8 @@
   "description": "",
   "main": "dist/server.js",
   "scripts": {
-    "start": "npm run prisma:generate && npm run prisma:push && node dist/server.js",
-    "prisma:generate": "npx prisma generate",
-    "prisma:push": "npx prisma db push",
+    "build": "tsc && npx prisma generate && npx prisma db push",
+    "start": "node dist/server.js",
     "dev": "nodemon src/server.ts"
   },
   "keywords": [],
